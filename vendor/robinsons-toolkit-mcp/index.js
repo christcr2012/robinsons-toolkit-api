@@ -1,6 +1,6 @@
 // vendor/robinsons-toolkit-mcp/index.js
 // Vendored wrapper for Robinson's Toolkit
-// Loads the pre-compiled ES module toolkit and exposes it as CommonJS
+// Uses the published npm package @robinson_ai_systems/robinsons-toolkit-mcp
 
 let toolkitInstance = null;
 let toolkitPromise = null;
@@ -13,15 +13,16 @@ async function getToolkit() {
   if (!toolkitPromise) {
     toolkitPromise = (async () => {
       try {
-        // Dynamic import of the ES module
-        const mod = await import('../../dist/index.js');
+        // Import from the published npm package
+        const mod = await import('@robinson_ai_systems/robinsons-toolkit-mcp');
         const { UnifiedToolkit } = mod;
         
         if (!UnifiedToolkit) {
-          throw new Error('UnifiedToolkit not found in module exports');
+          throw new Error('UnifiedToolkit not found in @robinson_ai_systems/robinsons-toolkit-mcp');
         }
         
         toolkitInstance = new UnifiedToolkit();
+        console.log('[Vendored Toolkit] Successfully loaded UnifiedToolkit from npm package');
         return toolkitInstance;
       } catch (err) {
         console.error('[Vendored Toolkit] Failed to load:', err);
