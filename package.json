@@ -9,6 +9,7 @@
     "start": "node -e \"console.log('use vercel dev')\""
   },
   "dependencies": {
+    "@octokit/rest": "^22.0.1",
     "@robinson_ai_systems/robinsons-toolkit-mcp": "^1.15.0"
   }
 }
