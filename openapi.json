@@ -1,5 +1,5 @@
 {
-  "openapi": "3.1.0",
+  "openapi": "3.0.0",
   "info": {
     "title": "Robinson's Toolkit API",
     "version": "0.1.0",
@@ -23,9 +23,15 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "ok": { "type": "boolean" },
-                    "ts": { "type": "string" },
-                    "commit": { "type": "string" }
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "ts": {
+                      "type": "string"
+                    },
+                    "commit": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -38,11 +44,6 @@
       "post": {
         "operationId": "execute",
         "summary": "Execute a toolkit tool by name",
-        "security": [
-          {
-            "api_key": []
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -56,7 +57,6 @@
                   },
                   "args": {
                     "type": "object",
-                    "additionalProperties": true,
                     "description": "Tool-specific arguments"
                   }
                 },
@@ -75,8 +75,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "ok": { "type": "boolean" },
-                    "result": { "type": "object" }
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "result": {
+                      "type": "object"
+                    }
                   }
                 }
               }
@@ -92,15 +96,6 @@
             "description": "Server error"
           }
         }
-      }
-    }
-  },
-  "components": {
-    "securitySchemes": {
-      "api_key": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "x-api-key"
       }
     }
   }
