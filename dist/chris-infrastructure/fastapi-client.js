@@ -226,4 +226,3 @@ export class FastAPIClient {
 }
 // Export singleton instance
 export const fastAPIClient = new FastAPIClient();
-//# sourceMappingURL=fastapi-client.js.map

@@ -660,4 +660,3 @@ export async function supabaseAuthAdminListFactors(args) {
         throw new Error(`Failed to list factors: ${error.message}`);
     }
 }
-//# sourceMappingURL=supabase-handlers.js.map

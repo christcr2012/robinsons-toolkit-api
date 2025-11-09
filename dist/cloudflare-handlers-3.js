@@ -358,4 +358,3 @@ export async function cloudflareGetR2BucketLifecycle(args) {
 export async function cloudflareSetR2BucketLifecycle(args) {
     return formatCloudflareResponse({ message: 'Use Cloudflare dashboard or API for lifecycle configuration' });
 }
-//# sourceMappingURL=cloudflare-handlers-3.js.map

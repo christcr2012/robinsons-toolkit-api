@@ -378,4 +378,3 @@ export async function playwrightStopVideo(args) {
     }
     return formatPlaywrightResponse({ message: 'No video recording active' });
 }
-//# sourceMappingURL=playwright-handlers.js.map

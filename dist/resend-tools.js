@@ -490,4 +490,3 @@ export const RESEND_TOOLS = [
         },
     },
 ];
-//# sourceMappingURL=resend-tools.js.map

@@ -185,4 +185,3 @@ export async function context7SearchExamples(args) {
         throw new Error(`Failed to search examples: ${error.message}`);
     }
 }
-//# sourceMappingURL=context7-handlers.js.map

@@ -259,4 +259,3 @@ export async function handleNeo4jConstraintCreate(args) {
     }
     return await fastAPIClient.neo4jQuery(cypher);
 }
-//# sourceMappingURL=neo4j-handlers.js.map

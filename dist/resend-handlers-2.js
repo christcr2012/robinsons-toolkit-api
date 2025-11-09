@@ -223,4 +223,3 @@ export async function resendGetAudienceStats(args) {
         throw new Error(`Failed to get audience stats: ${error.message}`);
     }
 }
-//# sourceMappingURL=resend-handlers-2.js.map

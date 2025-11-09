@@ -19,9 +19,6 @@
  * - Playwright (33) + Context7 (8) + Stripe (105) + Supabase (80)
  * - Resend (60) + Twilio (70) + Cloudflare (90)
  */
-import { config } from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema, InitializeRequestSchema } from '@modelcontextprotocol/sdk/types.js';
@@ -66,11 +63,6 @@ import { qdrantTools } from './chris-infrastructure/qdrant-tools.js';
 import * as QdrantHandlers from './chris-infrastructure/qdrant-handlers.js';
 import { n8nTools } from './chris-infrastructure/n8n-tools.js';
 import * as N8nHandlers from './chris-infrastructure/n8n-handlers.js';
-// Load environment variables from .env.local (in repo root)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const envPath = join(__dirname, '..', '..', '..', '.env.local');
-config({ path: envPath });
 // API constants
 const VERCEL_BASE_URL = 'https://api.vercel.com';
 const NEON_BASE_URL = 'https://console.neon.tech/api/v2';
@@ -16631,4 +16623,3 @@ ${args.body}`;
     }
 }
 export { UnifiedToolkit };
-//# sourceMappingURL=index.js.map

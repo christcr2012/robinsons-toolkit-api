@@ -144,4 +144,3 @@ export function generateBrokerTools(categories) {
  * Use generateBrokerTools() for dynamic category support
  */
 export const BROKER_TOOLS = generateBrokerTools([]);
-//# sourceMappingURL=broker-tools.js.map

@@ -599,4 +599,3 @@ export const SUPABASE_TOOLS = [
     ...SUPABASE_TOOLS_1,
     ...SUPABASE_TOOLS_2,
 ];
-//# sourceMappingURL=supabase-tools.js.map

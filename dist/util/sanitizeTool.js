@@ -24,4 +24,3 @@ export function validateTools(tools) {
     ok.sort((a, b) => a.name.localeCompare(b.name));
     return ok;
 }
-//# sourceMappingURL=sanitizeTool.js.map

@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
+    "module": "ES2022",
     "lib": ["ES2022"],
     "moduleResolution": "node",
-    "outDir": "./lib",
+    "outDir": "./dist",
     "rootDir": "./src",
     "strict": false,
     "esModuleInterop": true,
@@ -15,5 +15,5 @@
     "sourceMap": false
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "lib", "api"]
+  "exclude": ["node_modules", "dist", "lib", "api", "vendor"]
 }

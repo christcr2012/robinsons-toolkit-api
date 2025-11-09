@@ -624,4 +624,3 @@ export const SUPABASE_TOOLS_2 = [
         },
     },
 ];
-//# sourceMappingURL=supabase-tools-2.js.map

@@ -341,4 +341,3 @@ export async function cloudflareDeleteWorkerSecret(args) {
         throw new Error(`Failed to delete worker secret: ${error.message}`);
     }
 }
-//# sourceMappingURL=cloudflare-handlers-2.js.map

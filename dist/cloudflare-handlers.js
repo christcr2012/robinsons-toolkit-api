@@ -319,4 +319,3 @@ export async function cloudflareDeletePageRule(args) {
         throw new Error(`Failed to delete page rule: ${error.message}`);
     }
 }
-//# sourceMappingURL=cloudflare-handlers.js.map

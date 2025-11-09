@@ -227,4 +227,3 @@ export const n8nTools = [
         },
     },
 ];
-//# sourceMappingURL=n8n-tools.js.map

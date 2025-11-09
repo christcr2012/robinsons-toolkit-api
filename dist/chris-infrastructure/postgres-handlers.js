@@ -277,4 +277,3 @@ export async function handlePostgresUserList(args) {
   `;
     return await fastAPIClient.postgresExecute(sql);
 }
-//# sourceMappingURL=postgres-handlers.js.map

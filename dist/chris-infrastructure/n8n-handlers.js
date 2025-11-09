@@ -129,4 +129,3 @@ export async function handleN8nConnectionTest(args) {
         };
     }
 }
-//# sourceMappingURL=n8n-handlers.js.map

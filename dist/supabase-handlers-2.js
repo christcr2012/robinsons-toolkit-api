@@ -643,4 +643,3 @@ export async function supabaseManagementDeleteOrganization(args) {
         throw new Error(`Failed to delete organization: ${error.message}`);
     }
 }
-//# sourceMappingURL=supabase-handlers-2.js.map

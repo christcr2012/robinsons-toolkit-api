@@ -203,4 +203,3 @@ export const STRIPE_TOOLS = [
     { name: 'stripe_checkout_session_expire', description: 'Expire a checkout session', inputSchema: { type: 'object', additionalProperties: false, properties: { session_id: { type: 'string' } }, required: ['session_id'] } },
     { name: 'stripe_checkout_session_list', description: 'List checkout sessions', inputSchema: { type: 'object', additionalProperties: false, properties: { customer: { type: 'string' }, payment_intent: { type: 'string' }, subscription: { type: 'string' }, limit: { type: 'number' } } } },
 ];
-//# sourceMappingURL=stripe-tools.js.map

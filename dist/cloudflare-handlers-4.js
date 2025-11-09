@@ -608,4 +608,3 @@ export async function cloudflareCreateStreamWebhook(args) {
 export async function cloudflareDeleteStreamWebhook(args) {
     return formatCloudflareResponse({ message: 'Use Cloudflare dashboard to delete webhooks' });
 }
-//# sourceMappingURL=cloudflare-handlers-4.js.map
