@@ -1,72 +1,58 @@
-// vendor/robinsons-toolkit-mcp/index.js
-// Vendored wrapper for Robinson's Toolkit
-// Uses the published npm package @robinson_ai_systems/robinsons-toolkit-mcp
+// CommonJS-only, zero build.
+// A tiny runtime facade so /api/execute can call your tools without any MCP deps.
 
-let toolkitInstance = null;
-let toolkitPromise = null;
+const tools = Object.create(null);
 
-/**
- * Get or create the UnifiedToolkit instance
- * @returns {Promise<Object>} The toolkit instance
- */
-async function getToolkit() {
-  if (!toolkitPromise) {
-    toolkitPromise = (async () => {
-      try {
-        // Import from the published npm package
-        const mod = await import('@robinson_ai_systems/robinsons-toolkit-mcp');
-        const { UnifiedToolkit } = mod;
-        
-        if (!UnifiedToolkit) {
-          throw new Error('UnifiedToolkit not found in @robinson_ai_systems/robinsons-toolkit-mcp');
-        }
-        
-        toolkitInstance = new UnifiedToolkit();
-        console.log('[Vendored Toolkit] Successfully loaded UnifiedToolkit from npm package');
-        return toolkitInstance;
-      } catch (err) {
-        console.error('[Vendored Toolkit] Failed to load:', err);
-        throw err;
-      }
-    })();
-  }
-  
-  return toolkitPromise;
+// Register a tool by name → async function(args) => result
+function register(name, fn) {
+  if (typeof fn !== "function") throw new Error(`Tool ${name} must be a function`);
+  tools[name] = fn;
 }
 
-/**
- * Execute a tool by name with arguments
- * @param {string} tool - Tool name (e.g., 'github_list_repos')
- * @param {Object} args - Tool arguments
- * @returns {Promise<any>} Tool execution result
- */
-async function executeToolInternal(tool, args = {}) {
-  const toolkit = await getToolkit();
-  
-  if (!toolkit.executeToolInternal) {
-    throw new Error('executeToolInternal method not found on UnifiedToolkit');
-  }
-  
-  return toolkit.executeToolInternal(tool, args);
+async function executeToolInternal(name, args = {}) {
+  const fn = tools[name];
+  if (!fn) throw new Error(`Unknown tool: ${name}`);
+  return await fn(args);
 }
 
-/**
- * List all available tools
- * @returns {Promise<Array>} List of tool names
- */
-async function listTools() {
-  const toolkit = await getToolkit();
-  
-  if (toolkit.listTools) {
-    return toolkit.listTools();
-  }
-  
-  // Fallback: return empty array if method doesn't exist
-  return [];
+// Load your tool handlers here (pure functions, no MCP imports).
+function loadDefaultTools() {
+  // Built-in ping for smoke tests
+  register("ping", async (args) => ({
+    ok: true,
+    echo: args || {},
+    now: new Date().toISOString(),
+  }));
+
+  // GitHub tools
+  register("github_list_repos", require("./tools/github-list-repos"));
+  register("github_create_issue", require("./tools/github-create-issue"));
+
+  // Vercel tools
+  register("vercel_list_projects", require("./tools/vercel-list-projects"));
+
+  // Neon tools
+  register("neon_list_projects", require("./tools/neon-list-projects"));
+
+  // OpenAI tools
+  register("openai_list_models", require("./tools/openai-list-models"));
 }
 
-module.exports = {
-  executeToolInternal,
-  listTools,
-  getToolkit
-};
+let loaded = false;
+
+class UnifiedToolkit {
+  constructor() {
+    if (!loaded) {
+      loadDefaultTools();
+      loaded = true;
+    }
+  }
+  async executeToolInternal(name, args) {
+    return executeToolInternal(name, args);
+  }
+  async execute(name, args) {
+    return executeToolInternal(name, args);
+  }
+}
+
+module.exports = { UnifiedToolkit, register, executeToolInternal };
