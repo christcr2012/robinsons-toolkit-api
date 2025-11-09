@@ -1,123 +1,184 @@
 # Robinson's Toolkit API - Custom GPT Wrapper
 
-## ⚠️ CRITICAL: Repository Separation
+## What This Is
 
-**THIS IS A SEPARATE REPOSITORY FROM THE MAIN MCP SERVERS!**
+This is a **Vercel serverless API** that wraps Robinson's Toolkit MCP (1,237+ tools) and exposes it as a REST API so Custom GPTs in ChatGPT can use it.
 
-- **Main MCP Repo**: `robinsonai-mcp-servers` - DO NOT MODIFY when working on this API wrapper
-- **This Repo**: `robinsons-toolkit-api` - Vercel deployment for Custom GPT integration
+**This is NOT the main MCP server repository!** This is a separate, standalone deployment.
 
-## 🎯 Purpose
+## How It Works
 
-Expose Robinson's Toolkit MCP (1,237+ tools) as a REST API for Custom GPT Actions.
-
-## 📋 Current Status
-
-✅ Deployed to Vercel: https://robinsons-toolkit-api.vercel.app
-✅ Health endpoint working: `/api/health`
-✅ Execute endpoint working: `/api/execute`
-⏳ Waiting for npm package v1.16.0 with UnifiedToolkit export
-
-## 🔧 What Needs to Be Done
-
-### 1. Wait for npm Package Update
-The main MCP repo needs to publish v1.16.0 with the `UnifiedToolkit` export:
-```typescript
-export { UnifiedToolkit };
+```
+Custom GPT (ChatGPT)
+    ↓ (calls via OpenAPI/REST)
+Vercel Serverless API (this repo)
+    ↓ (imports npm package)
+@robinson_ai_systems/robinsons-toolkit-mcp
+    ↓ (executes tools)
+GitHub, Vercel, Neon, etc. APIs
 ```
 
-**DO NOT publish from this repo!** Only the main MCP repo should publish npm packages.
+## Repository Structure
 
-### 2. Update package.json (once v1.16.0 is published)
-```bash
-cd robinsons-toolkit-api
-# Update to latest version
-npm install @robinson_ai_systems/robinsons-toolkit-mcp@latest
-git add package.json package-lock.json
-git commit -m "chore: Update to toolkit v1.16.0"
-git push
+```
+robinsons-toolkit-api/          ← THIS REPO (separate from main MCP servers)
+├── api/
+│   ├── health.js               ← GET /api/health - health check
+│   └── execute.js              ← POST /api/execute - run toolkit tools
+├── package.json                ← Depends on @robinson_ai_systems/robinsons-toolkit-mcp
+├── openapi.json                ← OpenAPI schema for Custom GPT import
+└── README.md                   ← This file
 ```
 
-### 3. Test the API
+## The Problem We're Solving
+
+**Custom GPTs can't use MCP servers directly.** They only support REST APIs via OpenAPI schemas.
+
+So this repo:
+1. Imports the published npm package `@robinson_ai_systems/robinsons-toolkit-mcp`
+2. Exposes two HTTP endpoints (`/api/health` and `/api/execute`)
+3. Provides an OpenAPI schema that Custom GPT can import
+4. Runs as serverless functions on Vercel (auto-scales, no server management)
+
+## Current Status
+
+✅ **Deployed**: https://robinsons-toolkit-api.vercel.app
+✅ **Health endpoint works**: `/api/health` returns 200 OK
+❌ **Execute endpoint broken**: Returns "UnifiedToolkit not found in module exports"
+
+## Why It's Broken
+
+The published npm package `@robinson_ai_systems/robinsons-toolkit-mcp@1.15.0` **does not export the `UnifiedToolkit` class**.
+
+The package was designed to run as an MCP server (stdio transport), not to be imported as a library.
+
+## How to Fix It
+
+**Option 1: Export UnifiedToolkit from main repo (RECOMMENDED)**
+
+In the main MCP repo (`robinsonai-mcp-servers`):
+
+1. Add export to `packages/robinsons-toolkit-mcp/src/index.ts`:
+   ```typescript
+   export { UnifiedToolkit };
+   ```
+
+2. Prevent auto-start when imported:
+   ```typescript
+   // Only start MCP server if NOT being imported as a library
+   if (process.env.RTK_NO_AUTO_START !== '1') {
+     const toolkit = new UnifiedToolkit();
+     toolkit.run().catch(console.error);
+   }
+   ```
+
+3. Build and publish:
+   ```bash
+   cd packages/robinsons-toolkit-mcp
+   npm run build
+   npm version patch  # 1.15.0 → 1.15.1
+   npm publish
+   ```
+
+4. Update this repo:
+   ```bash
+   cd robinsons-toolkit-api
+   npm install @robinson_ai_systems/robinsons-toolkit-mcp@latest
+   git add package.json package-lock.json
+   git commit -m "chore: Update to toolkit v1.15.1 with UnifiedToolkit export"
+   git push  # Auto-deploys to Vercel
+   ```
+
+**Option 2: Create a separate library package**
+
+Create `@robinson_ai_systems/robinsons-toolkit-lib` that exports just the `UnifiedToolkit` class without MCP server code.
+
+## How to Use (Once Fixed)
+
+### 1. Import to Custom GPT
+
+1. Go to https://chat.openai.com
+2. Click profile → **My GPTs** → **Create a GPT**
+3. Click **Configure** tab
+4. Scroll to **Actions** → **Create new action**
+5. Click **Import from URL**
+6. Enter: `https://robinsons-toolkit-api.vercel.app/openapi.json`
+7. Click **Import**
+
+### 2. Test in Custom GPT
+
+Try these prompts:
+- "List my GitHub repositories"
+- "Create a new Vercel project called test-app"
+- "Check my Neon databases"
+- "Send an email via Resend to ops@robinsonaisystems.com"
+
+The GPT will automatically call the appropriate tools!
+
+### 3. Test via curl
+
 ```bash
-# Test health
+# Health check
 curl https://robinsons-toolkit-api.vercel.app/api/health
 
-# Test tool execution
+# Execute a tool
 curl -X POST https://robinsons-toolkit-api.vercel.app/api/execute \
   -H "Content-Type: application/json" \
-  -d '{"tool":"github_list_repos","args":{"owner":"christcr2012"}}'
+  -d '{
+    "tool": "github_list_repos",
+    "args": {"owner": "christcr2012"}
+  }'
 ```
 
-### 4. Import to Custom GPT
-1. Go to ChatGPT → My GPTs → Create/Edit GPT
-2. Configure tab → Actions → Create new action
-3. Import from URL: `https://robinsons-toolkit-api.vercel.app/openapi.json`
-4. Test with: "List my GitHub repositories"
+## Environment Variables
 
-## 📁 Repository Structure
+All credentials are set in Vercel (Project → Settings → Environment Variables):
 
-```
-robinsons-toolkit-api/
-├── api/
-│   ├── health.js       # Health check endpoint
-│   └── execute.js      # Tool execution endpoint
-├── package.json        # Dependencies (toolkit npm package)
-├── openapi.json        # OpenAPI schema for Custom GPT
-├── vercel.json         # Vercel config (minimal)
-└── README.md           # This file
-```
+- `GITHUB_TOKEN` - GitHub API access
+- `VERCEL_TOKEN` - Vercel API access  
+- `NEON_API_KEY` - Neon database API
+- `UPSTASH_REDIS_REST_URL` - Upstash Redis URL
+- `UPSTASH_REDIS_REST_TOKEN` - Upstash Redis token
+- `OPENAI_API_KEY` - OpenAI API
+- `GOOGLE_USER_EMAIL` - Google Workspace email
+- `STRIPE_SECRET_KEY` - Stripe API
+- `SUPABASE_URL` - Supabase project URL
+- `SUPABASE_KEY` - Supabase service role key
+- `RESEND_API_KEY` - Resend email API
+- `TWILIO_ACCOUNT_SID` - Twilio account SID
+- `TWILIO_AUTH_TOKEN` - Twilio auth token
+- `CLOUDFLARE_API_TOKEN` - Cloudflare API token
 
-## 🚫 What NOT to Do
+## Important Rules
 
-❌ **DO NOT** modify the main MCP repo (`robinsonai-mcp-servers`) when working on this API
-❌ **DO NOT** publish npm packages from this repo
-❌ **DO NOT** add MCP server code to this repo
-❌ **DO NOT** copy code between repos - use the published npm package
+### ✅ DO:
+- Only modify files in this repo (`robinsons-toolkit-api`)
+- Use the published npm package (don't copy code)
+- Test locally before pushing
+- Keep this repo minimal (just API wrapper code)
 
-## ✅ What TO Do
+### ❌ DON'T:
+- **DON'T modify the main MCP repo** when working on this API
+- **DON'T publish npm packages** from this repo
+- **DON'T add MCP server code** to this repo
+- **DON'T copy code** between repos
 
-✅ Only modify files in `robinsons-toolkit-api/` directory
-✅ Use the published npm package `@robinson_ai_systems/robinsons-toolkit-mcp`
-✅ Test locally before pushing
-✅ Keep this repo minimal and focused on REST API wrapper
+## Deployment
 
-## 🔐 Environment Variables (Already Set in Vercel)
+Vercel auto-deploys on every push to `main` branch.
 
-All environment variables from `augment-mcp-config.json` have been added to Vercel:
-- GITHUB_TOKEN
-- VERCEL_TOKEN
-- NEON_API_KEY
-- UPSTASH_REDIS_REST_URL
-- UPSTASH_REDIS_REST_TOKEN
-- OPENAI_API_KEY
-- GOOGLE_USER_EMAIL
-- STRIPE_SECRET_KEY
-- SUPABASE_URL
-- SUPABASE_KEY
-- RESEND_API_KEY
-- TWILIO_ACCOUNT_SID
-- TWILIO_AUTH_TOKEN
-- CLOUDFLARE_API_TOKEN
+Check deployment status: https://vercel.com/chris-projects-de6cd1bf/robinsons-toolkit-api
 
-## 🐛 Current Issue
+## Troubleshooting
 
-**Error**: `UnifiedToolkit not found in module exports`
+**"UnifiedToolkit not found in module exports"**
+→ The npm package doesn't export `UnifiedToolkit`. Follow "How to Fix It" above.
 
-**Cause**: The published npm package v1.15.0 doesn't export `UnifiedToolkit`
+**"Connection closed" or timeout errors**
+→ Check Vercel function logs: https://vercel.com/chris-projects-de6cd1bf/robinsons-toolkit-api/logs
 
-**Solution**: Wait for v1.16.0 to be published from the main MCP repo with the export
+**"Unauthorized" errors**
+→ Check environment variables are set in Vercel dashboard
 
-## �� Next Steps
-
-1. **In main MCP repo** (`robinsonai-mcp-servers`):
-   - Build: `cd packages/robinsons-toolkit-mcp && npm run build`
-   - Publish: `npm version patch && npm publish`
-
-2. **In this repo** (`robinsons-toolkit-api`):
-   - Update: `npm install @robinson_ai_systems/robinsons-toolkit-mcp@latest`
-   - Commit and push to trigger Vercel deployment
-
-3. **Test Custom GPT**:
-   - Import OpenAPI schema
-   - Try: "List my GitHub repositories"
+**Custom GPT can't import schema**
+→ Verify OpenAPI schema is valid: https://robinsons-toolkit-api.vercel.app/openapi.json
