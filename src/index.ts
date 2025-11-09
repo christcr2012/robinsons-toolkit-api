@@ -75,10 +75,10 @@ import { n8nTools } from './chris-infrastructure/n8n-tools.js';
 import * as N8nHandlers from './chris-infrastructure/n8n-handlers.js';
 
 // Load environment variables from .env.local (in repo root)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const envPath = join(__dirname, '..', '..', '..', '.env.local');
-config({ path: envPath });
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = dirname(__filename);
+// const envPath = join(__dirname, "..", "..", "..", ".env.local");
+// config({ path: envPath }); // Not needed in Vercel serverless
 
 // ============================================================
 // GITHUB (240 tools)
