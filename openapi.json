@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Robinson's Toolkit API",
-    "version": "0.1.0",
-    "description": "REST API wrapper for Robinson's Toolkit MCP - 1237+ tools across 16+ categories"
+    "description": "Serverless API wrapper for Robinson's Toolkit - Access 1,713 tools across 17 categories including GitHub, Vercel, Neon, Upstash, Google Workspace, OpenAI, Stripe, Supabase, and more.",
+    "version": "1.0.0"
   },
   "servers": [
     {
@@ -13,25 +13,20 @@
   "paths": {
     "/api/health": {
       "get": {
-        "operationId": "health",
         "summary": "Health check",
+        "description": "Check if the API is running",
+        "operationId": "healthCheck",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "API is healthy",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "ok": {
-                      "type": "boolean"
-                    },
-                    "ts": {
-                      "type": "string"
-                    },
-                    "commit": {
-                      "type": "string"
-                    }
+                    "ok": { "type": "boolean" },
+                    "ts": { "type": "string" },
+                    "commit": { "type": "string" }
                   }
                 }
               }
@@ -42,44 +37,49 @@
     },
     "/api/execute": {
       "post": {
-        "operationId": "execute",
-        "summary": "Execute a toolkit tool by name",
+        "summary": "Execute a tool",
+        "description": "Execute any tool from Robinson's Toolkit by name. Available tools include: github_*, vercel_*, neon_*, upstash_*, google_*, openai_*, stripe_*, supabase_*, playwright_*, twilio_*, resend_*, context7_*, cloudflare_*, postgres_*, neo4j_*, qdrant_*, n8n_*",
+        "operationId": "executeTool",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": ["tool"],
                 "properties": {
                   "tool": {
                     "type": "string",
-                    "description": "The tool name (e.g., github_list_repos, vercel_list_projects)"
+                    "description": "Tool name (e.g., 'github_list_repos', 'vercel_list_projects')"
                   },
                   "args": {
                     "type": "object",
-                    "description": "Tool-specific arguments"
+                    "description": "Tool-specific arguments",
+                    "additionalProperties": true
                   }
-                },
-                "required": [
-                  "tool"
-                ]
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Execution result",
+            "description": "Tool executed successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "ok": {
-                      "type": "boolean"
-                    },
+                    "ok": { "type": "boolean" },
                     "result": {
-                      "type": "object"
+                      "description": "Tool execution result",
+                      "oneOf": [
+                        { "type": "object" },
+                        { "type": "array" },
+                        { "type": "string" },
+                        { "type": "number" },
+                        { "type": "boolean" }
+                      ]
                     }
                   }
                 }
@@ -87,19 +87,16 @@
             }
           },
           "400": {
-            "description": "Bad request"
+            "description": "Bad request - missing or invalid parameters"
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized - invalid or missing API key"
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal server error"
           }
         }
       }
     }
-  },
-  "components": {
-    "schemas": {}
   }
 }
