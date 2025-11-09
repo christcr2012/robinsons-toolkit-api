@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Robinson's Toolkit API",
-    "description": "Serverless API wrapper for Robinson's Toolkit - Access 1,713 tools across 17 categories including GitHub, Vercel, Neon, Upstash, Google Workspace, OpenAI, Stripe, Supabase, and more.",
-    "version": "1.0.0"
+    "title": "Robinson's Toolkit API — Per-tool",
+    "version": "0.2.0",
+    "description": "Serverless API wrapper for Custom GPT to access Robinson's Toolkit tools"
   },
   "servers": [
     {
@@ -13,49 +13,195 @@
   "paths": {
     "/api/health": {
       "get": {
+        "operationId": "health",
         "summary": "Health check",
-        "description": "Check if the API is running",
-        "operationId": "healthCheck",
         "responses": {
           "200": {
-            "description": "API is healthy",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "ok": { "type": "boolean" },
-                    "ts": { "type": "string" },
-                    "commit": { "type": "string" }
-                  }
-                }
-              }
-            }
+            "description": "OK"
           }
         }
       }
     },
     "/api/execute": {
       "post": {
-        "summary": "Execute a tool",
-        "description": "Execute any tool from Robinson's Toolkit by name. Available tools include: github_*, vercel_*, neon_*, upstash_*, google_*, openai_*, stripe_*, supabase_*, playwright_*, twilio_*, resend_*, context7_*, cloudflare_*, postgres_*, neo4j_*, qdrant_*, n8n_*",
-        "operationId": "executeTool",
+        "operationId": "execute",
+        "summary": "Generic execute (tool + args)",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["tool"],
                 "properties": {
                   "tool": {
                     "type": "string",
-                    "description": "Tool name (e.g., 'github_list_repos', 'vercel_list_projects')"
+                    "description": "Tool name to execute"
                   },
                   "args": {
                     "type": "object",
-                    "description": "Tool-specific arguments",
-                    "additionalProperties": true
+                    "additionalProperties": true,
+                    "description": "Tool arguments"
+                  }
+                },
+                "required": [
+                  "tool"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Result"
+          }
+        }
+      }
+    },
+    "/api/tools/github-list-repos": {
+      "post": {
+        "operationId": "github_list_repos",
+        "summary": "List GitHub repositories for a user or organization",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "owner": {
+                    "type": "string",
+                    "description": "GitHub username or organization name"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": ["all", "owner", "public", "private", "member"],
+                    "default": "all",
+                    "description": "Type of repositories to list"
+                  },
+                  "sort": {
+                    "type": "string",
+                    "enum": ["created", "updated", "pushed", "full_name"],
+                    "default": "updated",
+                    "description": "Sort order"
+                  },
+                  "per_page": {
+                    "type": "integer",
+                    "default": 30,
+                    "maximum": 100,
+                    "description": "Number of results per page"
+                  }
+                },
+                "required": [
+                  "owner"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "List of repositories"
+          }
+        }
+      }
+    },
+    "/api/tools/github-create-issue": {
+      "post": {
+        "operationId": "github_create_issue",
+        "summary": "Create a GitHub issue",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "owner": {
+                    "type": "string",
+                    "description": "Repository owner"
+                  },
+                  "repo": {
+                    "type": "string",
+                    "description": "Repository name"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "Issue title"
+                  },
+                  "body": {
+                    "type": "string",
+                    "description": "Issue body/description"
+                  },
+                  "labels": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Labels to add to the issue"
+                  },
+                  "assignees": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Usernames to assign to the issue"
+                  }
+                },
+                "required": [
+                  "owner",
+                  "repo",
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Issue created successfully"
+          }
+        }
+      }
+    },
+    "/api/tools/vercel-list-projects": {
+      "post": {
+        "operationId": "vercel_list_projects",
+        "summary": "List Vercel projects",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "teamId": {
+                    "type": "string",
+                    "description": "Optional Vercel team ID"
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Number of projects to return"
                   }
                 }
               }
@@ -64,38 +210,71 @@
         },
         "responses": {
           "200": {
-            "description": "Tool executed successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "ok": { "type": "boolean" },
-                    "result": {
-                      "description": "Tool execution result",
-                      "oneOf": [
-                        { "type": "object" },
-                        { "type": "array" },
-                        { "type": "string" },
-                        { "type": "number" },
-                        { "type": "boolean" }
-                      ]
-                    }
+            "description": "List of Vercel projects"
+          }
+        }
+      }
+    },
+    "/api/tools/neon-list-projects": {
+      "post": {
+        "operationId": "neon_list_projects",
+        "summary": "List Neon PostgreSQL projects",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "limit": {
+                    "type": "integer",
+                    "default": 10,
+                    "description": "Number of projects to return"
                   }
                 }
               }
             }
-          },
-          "400": {
-            "description": "Bad request - missing or invalid parameters"
-          },
-          "401": {
-            "description": "Unauthorized - invalid or missing API key"
-          },
-          "500": {
-            "description": "Internal server error"
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "List of Neon projects"
           }
         }
+      }
+    },
+    "/api/tools/openai-list-models": {
+      "post": {
+        "operationId": "openai_list_models",
+        "summary": "List OpenAI models",
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "requestBody": {
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "description": "List of OpenAI models"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "api_key": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "API key for authentication"
       }
     }
   }
