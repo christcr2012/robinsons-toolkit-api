@@ -7,7 +7,14 @@ async function getToolkitInstance() {
   if (toolkitInstance) return toolkitInstance;
   
   try {
-    const { UnifiedToolkit } = require('@robinson_ai_systems/robinsons-toolkit-mcp');
+    // Use dynamic import for ES Module
+    const module = await import('@robinson_ai_systems/robinsons-toolkit-mcp');
+    const UnifiedToolkit = module.UnifiedToolkit || module.default?.UnifiedToolkit || module.default;
+    
+    if (!UnifiedToolkit) {
+      throw new Error('UnifiedToolkit not found in module exports');
+    }
+    
     toolkitInstance = new UnifiedToolkit();
     return toolkitInstance;
   } catch (err) {
