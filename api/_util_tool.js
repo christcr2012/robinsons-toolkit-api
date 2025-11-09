@@ -1,5 +1,6 @@
 // Shared wrapper for tool endpoints (CommonJS). Zero build.
-const { UnifiedToolkit } = require('../vendor/robinsons-toolkit-mcp');
+// Uses the full Robinson's Toolkit MCP (1857+ tools)
+const { UnifiedToolkit } = require('@robinson_ai_systems/robinsons-toolkit-mcp');
 let instance;
 
 function getExec() {

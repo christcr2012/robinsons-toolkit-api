@@ -1,21 +1,21 @@
 // api/execute.js
 // Robinson's Toolkit API - Execute endpoint
-// Uses vendored runtime (no MCP deps)
+// Uses the full Robinson's Toolkit MCP (1857+ tools)
 
 let UnifiedToolkitRef = null;
 
 function loadToolkitSync() {
   try {
-    // Prefer vendored runtime for zero-deps
-    const mod = require("../vendor/robinsons-toolkit-mcp");
+    // Use the published npm package with 1857+ tools
+    const mod = require("@robinson_ai_systems/robinsons-toolkit-mcp");
     return mod.UnifiedToolkit || (mod.default && mod.default.UnifiedToolkit) || mod;
   } catch (e) {
-    // Optional: try npm package if you later publish it
+    // Fallback to vendored runtime (6 tools only)
     try {
-      const mod = require("robinsons-toolkit-mcp");
+      const mod = require("../vendor/robinsons-toolkit-mcp");
       return mod.UnifiedToolkit || (mod.default && mod.default.UnifiedToolkit) || mod;
     } catch {
-      throw e;
+      throw new Error('Failed to load Robinson\'s Toolkit: ' + (e && e.message));
     }
   }
 }
@@ -32,19 +32,19 @@ async function getUnifiedToolkit() {
 
 module.exports = async (req, res) => {
   try {
-    if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-    const key = req.headers["x-api-key"];
+    const key = req.headers['x-api-key'];
     if (process.env.API_KEY && key !== process.env.API_KEY)
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
 
-    const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
+    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const { tool, args } = body;
-    if (!tool) return res.status(400).json({ error: "Missing `tool`" });
+    if (!tool) return res.status(400).json({ error: 'Missing `tool`' });
 
     const tk = await getUnifiedToolkit();
     const exec = tk.executeToolInternal || tk.execute || tk.run;
-    if (!exec) return res.status(500).json({ error: "Toolkit has no execute method" });
+    if (!exec) return res.status(500).json({ error: 'Toolkit has no execute method' });
 
     const result = await exec.call(tk, tool, args || {});
     return res.status(200).json({ ok: true, result });
