@@ -1,26 +1,88 @@
-# Robinson's Toolkit API
+# Robinson's Toolkit API (Vercel)
 
-REST API wrapper for Robinson's Toolkit MCP - enables Custom GPT integration with 1,237+ tools across 16+ categories.
+✅ **WORKING!** Minimal serverless wrapper that exposes MCP tool handlers over REST for Custom GPT Actions.
 
-## Features
+## Status
 
-- **1,237+ Tools** across 16+ categories (GitHub, Vercel, Neon, Upstash, Google, OpenAI, Stripe, Supabase, Playwright, Twilio, Resend, Context7, Cloudflare, PostgreSQL, Neo4j, Qdrant, N8N)
-- **Serverless Architecture** - Runs on Vercel Edge Functions
-- **Custom GPT Integration** - Import OpenAPI schema directly into ChatGPT
-- **Zero Build Step** - Direct TypeScript execution in serverless environment
+- ✅ Health endpoint working: `GET /api/health`
+- ✅ Execute endpoint working: `POST /api/execute`
+- ⏳ Toolkit integration: Using placeholder (needs wiring to real UnifiedToolkit)
+- ⏳ OpenAPI schema: Not yet created
+- ⏳ Custom GPT integration: Pending toolkit wiring
 
-## API Endpoints
+## Endpoints
 
-- `GET /api` - API information
-- `GET /api/health` - Health check
-- `GET /api/openapi.json` - OpenAPI schema for Custom GPT
-- `POST /api/execute` - Execute any tool from Robinson's Toolkit
+### `GET /api/health`
+Returns server health and deployment info.
 
-## Custom GPT Setup
+**Response:**
+```json
+{
+  "ok": true,
+  "ts": "2025-11-09T19:38:17.700Z",
+  "commit": "d61f9e3..."
+}
+```
 
-1. Go to ChatGPT → My GPTs → Create/Edit GPT
-2. Actions → Import from URL
-3. Use: `https://robinsons-toolkit-api.vercel.app/api/openapi.json`
+### `POST /api/execute`
+Execute any tool from Robinson's Toolkit.
+
+**Request:**
+```json
+{
+  "tool": "github_list_repos",
+  "args": {
+    "owner": "christcr2012"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "ok": true,
+  "result": { ... }
+}
+```
+
+**Auth (optional):**
+Send `x-api-key: <API_KEY>` header. Set `API_KEY` in Vercel → Project → Environment Variables.
+
+## Testing
+
+```bash
+# Health check
+curl https://robinsons-toolkit-api.vercel.app/api/health
+
+# Execute tool (placeholder)
+curl -X POST \
+  -H 'content-type: application/json' \
+  -d '{"tool":"ping","args":{"foo":"bar"}}' \
+  https://robinsons-toolkit-api.vercel.app/api/execute
+```
+
+## Next Steps
+
+1. **Wire real toolkit** - Replace placeholder in `api/execute.js` with:
+   ```js
+   const { UnifiedToolkit } = require('@robinson_ai_systems/robinsons-toolkit-mcp');
+   // ...
+   const result = await UnifiedToolkit.executeToolInternal(tool, args);
+   ```
+
+2. **Create OpenAPI schema** - Generate `openapi.json` for Custom GPT Actions import
+
+3. **Test with Custom GPT** - Import schema and test tool execution
+
+4. **Add API key auth** - Set `API_KEY` env var in Vercel for security
+
+## Local Development
+
+```bash
+npm i -g vercel
+vercel dev
+# then hit http://localhost:3000/api/health
+```
 
 ## Deployment
 
@@ -30,4 +92,4 @@ Automatically deploys to Vercel on push to `main` branch.
 
 ## License
 
-MIT
+UNLICENSED
