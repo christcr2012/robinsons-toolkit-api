@@ -53,6 +53,27 @@ class UnifiedToolkit {
   async execute(name, args) {
     return executeToolInternal(name, args);
   }
+  // Add method to list tools for the vendored runtime
+  listTools() {
+    return Object.keys(tools);
+  }
+  // Add registry-like structure for compatibility
+  get registry() {
+    return {
+      toolsByCategory: new Map([
+        ['vendored', new Map(Object.keys(tools).map(name => [name, { name }]))]
+      ]),
+      categories: new Map([
+        ['vendored', {
+          name: 'vendored',
+          displayName: 'Vendored Runtime (Fallback)',
+          description: 'Limited set of 6 tools from vendored runtime',
+          toolCount: Object.keys(tools).length,
+          enabled: true
+        }]
+      ])
+    };
+  }
 }
 
 module.exports = { UnifiedToolkit, register, executeToolInternal };
