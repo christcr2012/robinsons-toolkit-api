@@ -5,6 +5,9 @@
   "description": "Serverless API wrapper for Custom GPT → Robinson's Toolkit",
   "license": "UNLICENSED",
   "main": "dist/index.js",
+  "engines": {
+    "node": ">=18 <=22"
+  },
   "scripts": {
     "dev": "vercel dev",
     "deploy": "vercel --prod"
