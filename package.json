@@ -4,10 +4,9 @@
   "version": "0.1.0",
   "description": "Serverless API wrapper for Custom GPT → Robinson's Toolkit",
   "license": "UNLICENSED",
-  "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "echo \"Build not needed - using pre-compiled code\"",
     "dev": "tsc --watch",
     "start": "node -e \"console.log('use vercel dev')\""
   },
