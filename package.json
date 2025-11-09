@@ -1,0 +1,14 @@
+{
+  "name": "robinsons-toolkit-api",
+  "version": "1.0.0",
+  "description": "REST API wrapper for Robinson's Toolkit - enables Custom GPT integration with 1237+ tools across 16+ categories",
+  "type": "module",
+  "dependencies": {
+    "@vercel/node": "^3.0.0",
+    "@robinson_ai_systems/robinsons-toolkit-mcp": "^1.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3"
+  }
+}
