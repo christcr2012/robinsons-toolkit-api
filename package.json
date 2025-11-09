@@ -6,9 +6,8 @@
   "license": "UNLICENSED",
   "main": "dist/index.js",
   "scripts": {
-    "build": "echo \"Build not needed - using pre-compiled code\"",
-    "dev": "tsc --watch",
-    "start": "node -e \"console.log('use vercel dev')\""
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
@@ -35,6 +34,7 @@
     "@types/node": "^22.10.2",
     "@types/pg": "^8.11.10",
     "@types/turndown": "^5.0.5",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vercel": "^39.2.4"
   }
 }
