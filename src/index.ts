@@ -17510,10 +17510,4 @@ private async tasksUpdateTasklist(args: any): Promise<{ content: Array<{ type: s
 
 }
 
-console.error("[Robinson Toolkit] Initializing...");
-const toolkit = new UnifiedToolkit();
-console.error("[Robinson Toolkit] Instance created, starting run()...");
-toolkit.run().catch((error) => {
-  console.error("[Robinson Toolkit] FATAL ERROR in run():", error);
-  process.exit(1);
-});
+export { UnifiedToolkit };
