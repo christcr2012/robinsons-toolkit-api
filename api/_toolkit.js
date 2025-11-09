@@ -4,10 +4,25 @@
 let cached;
 
 function tryRequire(id) {
-  try { return { mod: require(id), type: 'cjs' }; } catch { return null; }
+  try { 
+    const mod = require(id);
+    console.log(`[_toolkit] Successfully required: ${id}`);
+    return { mod, type: 'cjs' }; 
+  } catch (e) { 
+    console.log(`[_toolkit] Failed to require ${id}:`, e.message);
+    return null; 
+  }
 }
+
 async function tryImport(id) {
-  try { return { mod: await import(id), type: 'esm' }; } catch { return null; }
+  try { 
+    const mod = await import(id);
+    console.log(`[_toolkit] Successfully imported: ${id}`);
+    return { mod, type: 'esm' }; 
+  } catch (e) { 
+    console.log(`[_toolkit] Failed to import ${id}:`, e.message);
+    return null; 
+  }
 }
 
 function unwrap(m) {
@@ -15,6 +30,8 @@ function unwrap(m) {
 }
 
 async function getToolkitCtor() {
+  console.log('[_toolkit] Attempting to load toolkit...');
+  
   // 1) Prefer installed package
   const cjs = tryRequire('@robinson_ai_systems/robinsons-toolkit-mcp');
   if (cjs) return unwrap(cjs.mod);
@@ -23,15 +40,23 @@ async function getToolkitCtor() {
   if (esm) return unwrap(esm.mod);
 
   // 2) Fallback to vendored runtime
+  console.log('[_toolkit] Trying vendored runtime fallback...');
   const vendored = tryRequire('../vendor/robinsons-toolkit-mcp');
-  if (vendored) return unwrap(vendored.mod);
+  if (vendored) {
+    console.log('[_toolkit] Using vendored runtime (6 tools only)');
+    return unwrap(vendored.mod);
+  }
 
   throw new Error('Cannot load toolkit: neither npm package nor vendored runtime found.');
 }
 
 module.exports.getToolkitInstance = async function getToolkitInstance() {
-  if (cached) return cached;
+  if (cached) {
+    console.log('[_toolkit] Returning cached instance');
+    return cached;
+  }
   const CtorOrObj = await getToolkitCtor();
   cached = (typeof CtorOrObj === 'function') ? new CtorOrObj() : CtorOrObj;
+  console.log('[_toolkit] Toolkit loaded successfully');
   return cached;
 };
