@@ -1,21 +1,24 @@
 // api/execute.js
-// Lightweight toolkit wrapper that calls APIs directly
+// Auth via x-api-key (set API_KEY in Vercel → Project → Environment Variables)
 
-const { Octokit } = require('@octokit/rest');
+// Import the UnifiedToolkit from the local build
+import { UnifiedToolkit } from '../dist/index.js';
 
-// Tool registry - maps tool names to handler functions
-const toolHandlers = {
-  // GitHub tools
-  github_list_repos: async (args) => {
-    const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
-    const { data } = await octokit.repos.listForUser({ username: args.owner });
-    return data;
-  },
+let toolkitInstance = null;
+
+async function getToolkitInstance() {
+  if (toolkitInstance) return toolkitInstance;
   
-  // Add more tools as needed...
-};
+  try {
+    toolkitInstance = new UnifiedToolkit();
+    return toolkitInstance;
+  } catch (err) {
+    console.error('Failed to load toolkit:', err);
+    throw new Error('Toolkit initialization failed: ' + (err && err.message));
+  }
+}
 
-module.exports = async (req, res) => {
+export default async (req, res) => {
   try {
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'Method Not Allowed' });
@@ -33,16 +36,11 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Missing `tool` parameter' });
     }
 
-    // Find and execute the tool handler
-    const handler = toolHandlers[tool];
-    if (!handler) {
-      return res.status(404).json({ 
-        error: `Tool '${tool}' not found`,
-        availableTools: Object.keys(toolHandlers)
-      });
-    }
-
-    const result = await handler(args || {});
+    const toolkit = await getToolkitInstance();
+    
+    // Call executeToolInternal method
+    const result = await toolkit.executeToolInternal(tool, args || {});
+    
     return res.status(200).json({ ok: true, result });
     
   } catch (err) {

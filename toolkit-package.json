@@ -1,0 +1,68 @@
+{
+  "name": "@robinson_ai_systems/robinsons-toolkit-mcp",
+  "version": "1.15.0",
+  "description": "Unified MCP server with 1237+ tools across GitHub, Vercel, Neon, Upstash Redis, Google Workspace, OpenAI, Stripe, Supabase, Playwright, Twilio, Resend, Context7, Cloudflare, PostgreSQL, Neo4j, Qdrant, and N8N. More integrations coming soon!",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "robinsons-toolkit-mcp": "./bin/robinsons-toolkit-mcp.js"
+  },
+  "files": [
+    "dist/",
+    "bin/"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "node ../../scripts/ensure-no-workspace.mjs"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "github",
+    "vercel",
+    "neon",
+    "redis",
+    "openai",
+    "google-workspace",
+    "playwright",
+    "context7",
+    "stripe",
+    "supabase",
+    "resend",
+    "twilio",
+    "cloudflare",
+    "unified-toolkit"
+  ],
+  "author": "Robinson AI",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@octokit/rest": "^21.0.2",
+    "@supabase/supabase-js": "^2.47.10",
+    "axios": "^1.7.9",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.6.1",
+    "googleapis": "^144.0.0",
+    "openai": "^4.77.3",
+    "p-limit": "^6.1.0",
+    "pg": "^8.13.1",
+    "playwright": "^1.49.1",
+    "redis": "^4.7.1",
+    "stripe": "^17.5.0",
+    "tiktoken": "^1.0.18",
+    "turndown": "^7.2.0",
+    "twilio": "^5.3.5",
+    "zod": "^3.24.1",
+    "cloudflare": "^3.5.0",
+    "resend": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "@types/turndown": "^5.0.5",
+    "typescript": "^5.7.2"
+  }
+}

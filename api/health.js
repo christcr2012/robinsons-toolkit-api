@@ -1,5 +1,5 @@
-// CommonJS export is the safest default for Vercel Serverless Functions
-module.exports = (req, res) => {
+// api/health.js
+export default (req, res) => {
   res.status(200).json({
     ok: true,
     ts: new Date().toISOString(),
