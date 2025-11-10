@@ -25,7 +25,7 @@ module.exports = async (req, res) => {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-API-Key, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -35,12 +35,20 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Authentication check
+  const apiKey = req.headers['x-api-key'] || req.headers['authorization']?.replace('Bearer ', '');
+  if (process.env.API_SECRET_KEY && apiKey !== process.env.API_SECRET_KEY) {
+    return res.status(401).json({ error: 'Unauthorized - Invalid API key' });
+  }
+
   try {
-    const { tool, ...args } = req.body;
+    const { tool, args = {} } = req.body;
 
     if (!tool) {
       return res.status(400).json({ error: 'Missing tool parameter' });
     }
+
+    console.log('Executing tool:', tool, 'with args:', JSON.stringify(args));
 
     // Gather credentials from environment variables
     const credentials = {
