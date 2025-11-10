@@ -1,0 +1,28 @@
+# Development files
+*.md
+!README.md
+.git
+.github
+.vscode
+*.log
+npm-debug.log*
+
+# Test files
+test/
+tests/
+*.test.js
+*.spec.js
+
+# Documentation
+docs/
+CHANGELOG.md
+CUSTOM-GPT-SETUP.md
+QUICK-REFERENCE.md
+
+# Vendor (we use npm package now)
+vendor/
+
+# Temp files
+*.tmp
+*.temp
+.DS_Store
