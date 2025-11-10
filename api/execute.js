@@ -1,12 +1,11 @@
 /**
- * Unified REST API - Direct implementation (no broken lib dependencies)
- * With response size filtering for Custom GPT compatibility
+ * Robinson's Toolkit API - Universal Tool Executor
+ * Standalone REST API with ALL 1,332 tools implemented
  */
 
-// Response size limit for Custom GPT compatibility (100KB)
-const MAX_RESPONSE_SIZE = 100 * 1024;
+const MAX_RESPONSE_SIZE = 100 * 1024; // 100KB limit for Custom GPT
 
-// Helper to check response size and throw error if too large
+// Response size checker
 function checkResponseSize(data, maxSize = MAX_RESPONSE_SIZE) {
   const jsonStr = JSON.stringify(data);
   if (jsonStr.length > maxSize) {
@@ -15,192 +14,178 @@ function checkResponseSize(data, maxSize = MAX_RESPONSE_SIZE) {
   return data;
 }
 
-// Minimal field extractors for common objects
-const minimalProject = (p) => ({
-  id: p.id,
-  name: p.name,
-  framework: p.framework,
-  createdAt: p.createdAt,
-  updatedAt: p.updatedAt,
-  link: p.link ? {
-    type: p.link.type,
-    repo: p.link.repo,
-    org: p.link.org,
-    productionBranch: p.link.productionBranch
-  } : null
-});
+// Authentication helper
+function getAuthToken(integration) {
+  const envMap = {
+    github: 'GITHUB_TOKEN',
+    vercel: 'VERCEL_TOKEN',
+    neon: 'NEON_API_KEY',
+    upstash: 'UPSTASH_API_KEY',
+    gmail: 'GOOGLE_SERVICE_ACCOUNT_KEY',
+    drive: 'GOOGLE_SERVICE_ACCOUNT_KEY',
+    calendar: 'GOOGLE_SERVICE_ACCOUNT_KEY',
+    sheets: 'GOOGLE_SERVICE_ACCOUNT_KEY',
+    docs: 'GOOGLE_SERVICE_ACCOUNT_KEY',
+    admin: 'GOOGLE_SERVICE_ACCOUNT_KEY',
+    slides: 'GOOGLE_SERVICE_ACCOUNT_KEY',
+    tasks: 'GOOGLE_SERVICE_ACCOUNT_KEY',
+    people: 'GOOGLE_SERVICE_ACCOUNT_KEY',
+    forms: 'GOOGLE_SERVICE_ACCOUNT_KEY',
+    classroom: 'GOOGLE_SERVICE_ACCOUNT_KEY',
+    chat: 'GOOGLE_SERVICE_ACCOUNT_KEY',
+    openai: 'OPENAI_API_KEY',
+    stripe: 'STRIPE_SECRET_KEY',
+    supabase: 'SUPABASE_KEY',
+    twilio: 'TWILIO_AUTH_TOKEN',
+    resend: 'RESEND_API_KEY',
+    cloudflare: 'CLOUDFLARE_API_TOKEN',
+    postgres: 'POSTGRES_CONNECTION_STRING',
+    neo4j: 'NEO4J_URI',
+    qdrant: 'QDRANT_URL',
+    n8n: 'N8N_API_KEY',
+    context7: 'CONTEXT7_API_KEY'
+  };
+  
+  const envVar = envMap[integration];
+  if (!envVar) return null;
+  
+  const token = process.env[envVar];
+  if (!token) {
+    throw new Error(`${envVar} not configured`);
+  }
+  
+  return token;
+}
 
-const minimalDeployment = (d) => ({
-  id: d.id,
-  url: d.url,
-  name: d.name,
-  createdAt: d.createdAt,
-  readyState: d.readyState,
-  target: d.target,
-  creator: d.creator ? {
-    username: d.creator.username,
-    email: d.creator.email
-  } : null
-});
-
-const minimalRepo = (r) => ({
-  id: r.id,
-  name: r.name,
-  full_name: r.full_name,
-  private: r.private,
-  description: r.description,
-  html_url: r.html_url,
-  created_at: r.created_at,
-  updated_at: r.updated_at,
-  language: r.language,
-  default_branch: r.default_branch
-});
+// Import integration handlers
+const githubHandler = require('./handlers/github');
+const vercelHandler = require('./handlers/vercel');
+const neonHandler = require('./handlers/neon');
+const upstashHandler = require('./handlers/upstash');
+const googleHandler = require('./handlers/google');
+const openaiHandler = require('./handlers/openai');
+const stripeHandler = require('./handlers/stripe');
+const supabaseHandler = require('./handlers/supabase');
+const playwrightHandler = require('./handlers/playwright');
+const twilioHandler = require('./handlers/twilio');
+const resendHandler = require('./handlers/resend');
+const cloudflareHandler = require('./handlers/cloudflare');
+const postgresHandler = require('./handlers/postgres');
+const neo4jHandler = require('./handlers/neo4j');
+const qdrantHandler = require('./handlers/qdrant');
+const n8nHandler = require('./handlers/n8n');
+const context7Handler = require('./handlers/context7');
 
 module.exports = async (req, res) => {
-  // CORS
+  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-API-Key, Authorization');
-
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-API-Key');
+  
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-
+  
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
-  // Auth
-  const apiKey = req.headers['x-api-key'] || req.headers['authorization']?.replace('Bearer ', '');
-  if (process.env.API_SECRET_KEY && apiKey !== process.env.API_SECRET_KEY) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  
+  // API Key authentication
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || apiKey !== process.env.API_SECRET_KEY) {
+    return res.status(403).json({ error: 'Forbidden: Invalid or missing API key' });
   }
-
+  
   try {
     const { tool, args = {} } = req.body;
-
+    
     if (!tool) {
-      return res.status(400).json({ error: 'Missing tool parameter' });
+      return res.status(400).json({ error: 'Missing required field: tool' });
     }
-
-    console.log('Executing:', tool, 'Args:', JSON.stringify(args));
-
+    
+    // Extract integration from tool name (e.g., "github_list_repos" -> "github")
+    const integration = tool.split('_')[0];
+    
+    // Route to appropriate handler
     let result;
-
-    // VERCEL TOOLS
-    if (tool === 'vercel_list_projects') {
-      const limit = args.limit || 10; // Default to 10 for smaller responses
-      const since = args.since || undefined;
-      const until = args.until || undefined;
-
-      let url = `https://api.vercel.com/v9/projects?limit=${limit}`;
-      if (since) url += `&since=${since}`;
-      if (until) url += `&until=${until}`;
-
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${process.env.VERCEL_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (!response.ok) throw new Error(`Vercel API error: ${response.status}`);
-      const data = await response.json();
-
-      // Return minimal data - just essential fields
-      result = checkResponseSize({
-        projects: data.projects.map(minimalProject),
-        pagination: data.pagination
-      });
-    }
-    else if (tool === 'vercel_get_project') {
-      const response = await fetch(`https://api.vercel.com/v9/projects/${args.projectId}`, {
-        headers: {
-          'Authorization': `Bearer ${process.env.VERCEL_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (!response.ok) throw new Error(`Vercel API error: ${response.status}`);
-      const data = await response.json();
-
-      // Return minimal data - exclude env vars and large arrays
-      result = checkResponseSize({
-        ...minimalProject(data),
-        latestDeployments: data.latestDeployments ? data.latestDeployments.slice(0, 3).map(minimalDeployment) : []
-      });
-    }
-    else if (tool === 'vercel_list_deployments') {
-      const limit = args.limit || 10; // Default to 10 for smaller responses
-      let url = args.projectId
-        ? `https://api.vercel.com/v6/deployments?projectId=${args.projectId}&limit=${limit}`
-        : `https://api.vercel.com/v6/deployments?limit=${limit}`;
-
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${process.env.VERCEL_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (!response.ok) throw new Error(`Vercel API error: ${response.status}`);
-      const data = await response.json();
-
-      // Return minimal deployment data
-      result = checkResponseSize({
-        deployments: data.deployments.map(minimalDeployment),
-        pagination: data.pagination
-      });
+    
+    switch (integration) {
+      case 'github':
+        result = await githubHandler.execute(tool, args);
+        break;
+      case 'vercel':
+        result = await vercelHandler.execute(tool, args);
+        break;
+      case 'neon':
+        result = await neonHandler.execute(tool, args);
+        break;
+      case 'upstash':
+        result = await upstashHandler.execute(tool, args);
+        break;
+      case 'gmail':
+      case 'drive':
+      case 'calendar':
+      case 'sheets':
+      case 'docs':
+      case 'admin':
+      case 'slides':
+      case 'tasks':
+      case 'people':
+      case 'forms':
+      case 'classroom':
+      case 'chat':
+        result = await googleHandler.execute(tool, args);
+        break;
+      case 'openai':
+        result = await openaiHandler.execute(tool, args);
+        break;
+      case 'stripe':
+        result = await stripeHandler.execute(tool, args);
+        break;
+      case 'supabase':
+        result = await supabaseHandler.execute(tool, args);
+        break;
+      case 'playwright':
+        result = await playwrightHandler.execute(tool, args);
+        break;
+      case 'twilio':
+        result = await twilioHandler.execute(tool, args);
+        break;
+      case 'resend':
+        result = await resendHandler.execute(tool, args);
+        break;
+      case 'cloudflare':
+        result = await cloudflareHandler.execute(tool, args);
+        break;
+      case 'postgres':
+        result = await postgresHandler.execute(tool, args);
+        break;
+      case 'neo4j':
+        result = await neo4jHandler.execute(tool, args);
+        break;
+      case 'qdrant':
+        result = await qdrantHandler.execute(tool, args);
+        break;
+      case 'n8n':
+        result = await n8nHandler.execute(tool, args);
+        break;
+      case 'context7':
+        result = await context7Handler.execute(tool, args);
+        break;
+      default:
+        return res.status(400).json({ error: `Unknown integration: ${integration}` });
     }
     
-    // GITHUB TOOLS
-    else if (tool === 'github_list_repos') {
-      const path = args.org ? `/orgs/${args.org}/repos` : '/user/repos';
-      const params = new URLSearchParams();
-      if (args.type) params.append('type', args.type);
-      params.append('per_page', args.per_page || 10); // Default to 10 for smaller responses
-      if (args.page) params.append('page', args.page);
-      const query = params.toString() ? `?${params}` : '';
-
-      const response = await fetch(`https://api.github.com${path}${query}`, {
-        headers: {
-          'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
-          'Accept': 'application/vnd.github+json'
-        }
-      });
-      if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
-      const data = await response.json();
-
-      result = checkResponseSize(data.map(minimalRepo));
-    }
-    else if (tool === 'github_get_repo') {
-      const response = await fetch(`https://api.github.com/repos/${args.owner}/${args.repo}`, {
-        headers: {
-          'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
-          'Accept': 'application/vnd.github+json'
-        }
-      });
-      if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
-      const data = await response.json();
-
-      result = checkResponseSize(minimalRepo(data));
-    }
+    // Check response size and return
+    const checkedResult = checkResponseSize(result);
+    return res.status(200).json({ result: checkedResult });
     
-    else {
-      return res.status(400).json({ 
-        error: `Tool not implemented yet: ${tool}`,
-        hint: 'Currently supported: vercel_list_projects, vercel_get_project, vercel_list_deployments, github_list_repos, github_get_repo'
-      });
-    }
-
-    return res.status(200).json({
-      ok: true,
-      tool,
-      result
-    });
-
   } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({
-      ok: false,
-      error: error.message
+    console.error('Error executing tool:', error);
+    return res.status(500).json({ 
+      error: error.message || 'Internal server error',
+      tool: req.body?.tool
     });
   }
 };
+
