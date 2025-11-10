@@ -271,22 +271,22 @@ async function execute(tool, args) {
     return checkResponseSize(minimalPR(data));
   }
   
-  if (tool === 'github_create_pull_request') {
+  if (tool === 'github_create_pull_request' || tool === 'github_create_pull') {
     const { owner, repo, title, head, base, body, draft, maintainer_can_modify } = args;
     if (!owner || !repo || !title || !head || !base) throw new Error('owner, repo, title, head, and base are required');
-    
+
     const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/pulls`;
     const requestBody = { title, head, base, body, draft, maintainer_can_modify };
-    
+
     const response = await fetch(url, {
       method: 'POST',
       headers,
       body: JSON.stringify(requestBody)
     });
-    
+
     if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
     const data = await response.json();
-    
+
     return checkResponseSize(minimalPR(data));
   }
   
