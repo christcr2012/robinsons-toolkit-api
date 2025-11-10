@@ -1,0 +1,318 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Robinson's Toolkit API",
+    "description": "Unified REST API for Robinson's 5 MCP Servers",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://robinsons-toolkit-9me6j7fvd-chris-projects-de6cd1bf.vercel.app"
+    }
+  ],
+  "paths": {
+    "/api/execute": {
+      "post": {
+        "operationId": "executeToolkitTool",
+        "summary": "Execute toolkit tool (909 methods)",
+        "description": "Execute GitHub, Vercel, Neon, Google, Upstash, Stripe, Supabase, Cloudflare, Resend, Playwright, Postgres, Twilio, Neo4j, Qdrant, Context7, or N8N tools",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["tool"],
+                "properties": {
+                  "tool": {
+                    "type": "string",
+                    "description": "Tool name with prefix",
+                    "example": "github_list_repos"
+                  },
+                  "args": {
+                    "type": "object",
+                    "description": "Tool arguments",
+                    "properties": {},
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/thinking/execute": {
+      "post": {
+        "operationId": "executeThinkingTool",
+        "summary": "Execute thinking tool (64 tools)",
+        "description": "Execute cognitive frameworks, context engine, or documentation tools",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["tool"],
+                "properties": {
+                  "tool": {
+                    "type": "string",
+                    "description": "Thinking tool name",
+                    "example": "framework_swot"
+                  },
+                  "args": {
+                    "type": "object",
+                    "description": "Tool arguments",
+                    "properties": {},
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agent/free/execute": {
+      "post": {
+        "operationId": "executeFreeAgent",
+        "summary": "Execute FREE agent (Ollama, 0 credits)",
+        "description": "Generate code using local Ollama models",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["task", "context"],
+                "properties": {
+                  "task": {
+                    "type": "string",
+                    "description": "What to build",
+                    "example": "Create a React button component"
+                  },
+                  "context": {
+                    "type": "string",
+                    "description": "Project context",
+                    "example": "React, TypeScript, Tailwind"
+                  },
+                  "quality": {
+                    "type": "string",
+                    "enum": ["fast", "balanced", "best"],
+                    "description": "Quality vs speed tradeoff"
+                  },
+                  "complexity": {
+                    "type": "string",
+                    "enum": ["simple", "medium", "complex"],
+                    "description": "Task complexity"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "verdict": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agent/paid/execute": {
+      "post": {
+        "operationId": "executePaidAgent",
+        "summary": "Execute PAID agent (OpenAI/Claude)",
+        "description": "Generate code using premium models",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["task", "context"],
+                "properties": {
+                  "task": {
+                    "type": "string",
+                    "description": "What to build",
+                    "example": "Create authentication system"
+                  },
+                  "context": {
+                    "type": "string",
+                    "description": "Project context",
+                    "example": "Node.js, Express, JWT"
+                  },
+                  "provider": {
+                    "type": "string",
+                    "enum": ["openai", "claude"],
+                    "description": "Model provider"
+                  },
+                  "maxCost": {
+                    "type": "number",
+                    "description": "Maximum cost in USD"
+                  },
+                  "minQuality": {
+                    "type": "string",
+                    "enum": ["basic", "standard", "premium"],
+                    "description": "Minimum quality requirement"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "verdict": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/optimizer/workflow": {
+      "post": {
+        "operationId": "executeOptimizerAction",
+        "summary": "Execute Credit Optimizer action",
+        "description": "Plan workflows, scaffold templates, estimate costs",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["action"],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": ["plan_workflow", "scaffold_template", "estimate_cost", "optimize_workflow"],
+                    "description": "Action to perform"
+                  },
+                  "taskType": {
+                    "type": "string",
+                    "description": "Type of task"
+                  },
+                  "complexity": {
+                    "type": "string",
+                    "enum": ["simple", "medium", "complex"],
+                    "description": "Task complexity"
+                  },
+                  "linesOfCode": {
+                    "type": "number",
+                    "description": "Estimated lines of code"
+                  },
+                  "workflowName": {
+                    "type": "string",
+                    "description": "Workflow name"
+                  },
+                  "steps": {
+                    "type": "array",
+                    "description": "Workflow steps",
+                    "items": {
+                      "type": "object",
+                      "properties": {},
+                      "additionalProperties": true
+                    }
+                  },
+                  "templateName": {
+                    "type": "string",
+                    "description": "Template name"
+                  },
+                  "workflow": {
+                    "type": "object",
+                    "description": "Workflow definition",
+                    "properties": {},
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
