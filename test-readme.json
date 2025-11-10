@@ -1,0 +1,7 @@
+{
+  "tool": "github_get_repo_readme",
+  "args": {
+    "owner": "christcr2012",
+    "repo": "robinsonai-mcp-servers"
+  }
+}
