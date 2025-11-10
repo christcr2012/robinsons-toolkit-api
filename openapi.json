@@ -13,11 +13,34 @@
   "paths": {
     "/api/health": {
       "get": {
-        "operationId": "health",
-        "summary": "Health check",
+        "operationId": "health_check",
+        "summary": "Health check endpoint",
+        "description": "Returns API health status and basic info",
+        "security": [],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "API is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -59,7 +82,36 @@
           "200": {
             "description": "Result"
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "fresh",
+            "in": "query",
+            "description": "Force fresh toolkit load, bypassing cache",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "0",
+                "1"
+              ],
+              "default": "0"
+            }
+          },
+          {
+            "name": "prefer",
+            "in": "query",
+            "description": "Prefer specific toolkit source (npm or vendor fallback)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "npm",
+                "vendor"
+              ]
+            }
+          }
+        ]
       }
     },
     "/api/tools/github-list-repos": {
