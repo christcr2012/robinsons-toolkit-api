@@ -1,4 +1,4 @@
-$baseUrl = "https://robinsons-toolkit-9me6j7fvd-chris-projects-de6cd1bf.vercel.app"
+$baseUrl = "https://robinsons-toolkit-2b66om660-chris-projects-de6cd1bf.vercel.app"
 $apiKey = "moyNducC36LwVGXhrIkY8txfqUOpAgva"
 
 Write-Host "=== COMPREHENSIVE API TESTING ===" -ForegroundColor Cyan
