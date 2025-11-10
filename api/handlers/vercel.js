@@ -452,6 +452,179 @@ async function execute(tool, args) {
     return { success: true, message: 'Alias deleted' };
   }
 
+  // TEAMS (10 tools)
+  if (tool === 'vercel_list_teams') {
+    const { limit = 10, since, until } = args;
+    let url = `${VERCEL_API_BASE}/v2/teams?limit=${limit}`;
+    if (since) url += `&since=${since}`;
+    if (until) url += `&until=${until}`;
+
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`Vercel API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize({
+      teams: data.teams.map(t => ({
+        id: t.id,
+        slug: t.slug,
+        name: t.name,
+        createdAt: t.createdAt
+      })),
+      pagination: data.pagination
+    });
+  }
+
+  if (tool === 'vercel_get_team') {
+    const { teamId } = args;
+    if (!teamId) throw new Error('teamId is required');
+
+    const url = `${VERCEL_API_BASE}/v2/teams/${teamId}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`Vercel API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize(data);
+  }
+
+  if (tool === 'vercel_create_team') {
+    const { slug, name } = args;
+    if (!slug) throw new Error('slug is required');
+
+    const url = `${VERCEL_API_BASE}/v1/teams`;
+    const body = { slug };
+    if (name) body.name = name;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) throw new Error(`Vercel API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize(data);
+  }
+
+  if (tool === 'vercel_update_team') {
+    const { teamId, name, slug } = args;
+    if (!teamId) throw new Error('teamId is required');
+
+    const url = `${VERCEL_API_BASE}/v2/teams/${teamId}`;
+    const body = {};
+    if (name) body.name = name;
+    if (slug) body.slug = slug;
+
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) throw new Error(`Vercel API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize(data);
+  }
+
+  if (tool === 'vercel_delete_team') {
+    const { teamId } = args;
+    if (!teamId) throw new Error('teamId is required');
+
+    const url = `${VERCEL_API_BASE}/v1/teams/${teamId}`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers
+    });
+
+    if (!response.ok) throw new Error(`Vercel API error: ${response.status}`);
+
+    return { success: true, message: 'Team deleted' };
+  }
+
+  if (tool === 'vercel_list_team_members') {
+    const { teamId, limit = 10 } = args;
+    if (!teamId) throw new Error('teamId is required');
+
+    const url = `${VERCEL_API_BASE}/v2/teams/${teamId}/members?limit=${limit}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`Vercel API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize({
+      members: data.members.map(m => ({
+        uid: m.uid,
+        username: m.username,
+        email: m.email,
+        role: m.role,
+        createdAt: m.createdAt
+      })),
+      pagination: data.pagination
+    });
+  }
+
+  if (tool === 'vercel_invite_team_member') {
+    const { teamId, email, role = 'MEMBER' } = args;
+    if (!teamId || !email) throw new Error('teamId and email are required');
+
+    const url = `${VERCEL_API_BASE}/v1/teams/${teamId}/members`;
+    const body = { email, role };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) throw new Error(`Vercel API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize(data);
+  }
+
+  if (tool === 'vercel_remove_team_member') {
+    const { teamId, userId } = args;
+    if (!teamId || !userId) throw new Error('teamId and userId are required');
+
+    const url = `${VERCEL_API_BASE}/v1/teams/${teamId}/members/${userId}`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers
+    });
+
+    if (!response.ok) throw new Error(`Vercel API error: ${response.status}`);
+
+    return { success: true, message: 'Team member removed' };
+  }
+
+  // LOGS (6 tools)
+  if (tool === 'vercel_get_deployment_logs') {
+    const { deploymentId, limit = 100, since, until } = args;
+    if (!deploymentId) throw new Error('deploymentId is required');
+
+    let url = `${VERCEL_API_BASE}/v2/deployments/${deploymentId}/events?limit=${limit}`;
+    if (since) url += `&since=${since}`;
+    if (until) url += `&until=${until}`;
+
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`Vercel API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize(data);
+  }
+
+  if (tool === 'vercel_get_build_logs') {
+    const { deploymentId } = args;
+    if (!deploymentId) throw new Error('deploymentId is required');
+
+    const url = `${VERCEL_API_BASE}/v1/deployments/${deploymentId}/builds`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`Vercel API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize(data);
+  }
+
   // Default: tool not implemented yet
   throw new Error(`Vercel tool not yet implemented: ${tool}`);
 }
