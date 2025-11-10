@@ -1,6 +1,7 @@
 const { getToolkitInstance } = require('./_toolkit');
 
 module.exports = async (req, res) => {
+  let tool, finalArgs;
   try {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
     
@@ -12,7 +13,8 @@ module.exports = async (req, res) => {
     const prefer = url.searchParams.get('prefer') || undefined;
     
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
-    const { tool, args, ...rest } = body;
+    const { tool: toolName, args, ...rest } = body;
+    tool = toolName;
     
     // DIAGNOSTIC: Log what Custom GPT is sending
     console.log('[execute] Raw payload:', JSON.stringify({ tool, args, rest }, null, 2));
@@ -26,7 +28,7 @@ module.exports = async (req, res) => {
     // UNIVERSAL SOLUTION: Accept both formats for ALL tools
     // Format 1: { tool: "name", args: { param1, param2 } } → use args
     // Format 2: { tool: "name", param1, param2 } → use rest as args
-    const finalArgs = args ?? rest;
+    finalArgs = args ?? rest;
     
     console.log('[execute] Calling tool:', tool);
     console.log('[execute] With args:', JSON.stringify(finalArgs, null, 2));
