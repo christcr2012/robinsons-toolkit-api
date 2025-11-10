@@ -6,8 +6,12 @@ module.exports = async (req, res) => {
     const key = req.headers['x-api-key'];
     if (process.env.API_KEY && key !== process.env.API_KEY) return res.status(401).json({ error: 'Unauthorized' });
 
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const fresh = url.searchParams.get('fresh') === '1';
+    const prefer = url.searchParams.get('prefer') || undefined;
     const { q = '', category = '', offset = '0', limit = '100' } = req.query || {};
-    const tk = await getToolkitInstance();
+
+    const tk = await getToolkitInstance({ fresh, prefer });
 
     // Extract all tool names from the registry
     const allTools = [];

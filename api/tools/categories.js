@@ -6,7 +6,11 @@ module.exports = async (req, res) => {
     const key = req.headers['x-api-key'];
     if (process.env.API_KEY && key !== process.env.API_KEY) return res.status(401).json({ error: 'Unauthorized' });
 
-    const tk = await getToolkitInstance();
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const fresh = url.searchParams.get('fresh') === '1';
+    const prefer = url.searchParams.get('prefer') || undefined;
+
+    const tk = await getToolkitInstance({ fresh, prefer });
 
     // Extract categories from the registry
     const categories = [];
