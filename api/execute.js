@@ -1,5 +1,4 @@
 const { getToolkitInstance } = require('./_toolkit');
-const { resolveToolName, mapParameters } = require('./_tool_aliases');
 
 module.exports = async (req, res) => {
   try {
@@ -14,43 +13,35 @@ module.exports = async (req, res) => {
     
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const { tool, args, ...rest } = body;
+    
+    // DIAGNOSTIC: Log what Custom GPT is sending
+    console.log('[execute] Raw payload:', JSON.stringify({ tool, args, rest }, null, 2));
+    
     if (!tool) return res.status(400).json({ error: 'Missing `tool`' });
     
     const tk = await getToolkitInstance({ fresh, prefer });
     const exec = tk.executeToolInternal || tk.execute || tk.run;
     if (!exec) return res.status(500).json({ error: 'Toolkit has no execute method' });
     
-    // Support THREE formats for maximum Custom GPT compatibility:
-    // 1. Standard: { tool: "name", args: { param1, param2 } }
-    // 2. Flat: { tool: "name", param1, param2 } (Custom GPT often sends this)
-    // 3. Mixed: { tool: "name", args: { ... }, extraParam } (merge both)
-    let toolArgs;
-    if (args && typeof args === 'object') {
-      // Format 1 or 3: args object exists
-      if (Object.keys(rest).length > 0) {
-        // Format 3: Merge args with rest (Custom GPT sometimes splits params)
-        toolArgs = { ...args, ...rest };
-        console.log('[execute] Merged args + rest params');
-      } else {
-        // Format 1: Standard format
-        toolArgs = args;
-      }
-    } else {
-      // Format 2: Flat format (all params at top level)
-      toolArgs = rest;
-      console.log('[execute] Using flat params (Custom GPT format)');
-    }
+    // UNIVERSAL SOLUTION: Accept both formats for ALL tools
+    // Format 1: { tool: "name", args: { param1, param2 } } → use args
+    // Format 2: { tool: "name", param1, param2 } → use rest as args
+    const finalArgs = args ?? rest;
     
-    // Resolve alias and map parameters
-    const resolvedTool = resolveToolName(tool);
-    toolArgs = mapParameters(tool, toolArgs);
+    console.log('[execute] Calling tool:', tool);
+    console.log('[execute] With args:', JSON.stringify(finalArgs, null, 2));
     
-    console.log(`[execute] Tool: ${tool}` → `${resolvedTool}`, Args:`, toolArgs);
+    // Call toolkit directly - no alias resolution needed
+    const result = await exec.call(tk, tool, finalArgs);
     
-    const result = await exec.call(tk, resolvedTool, toolArgs);
     res.status(200).json({ ok: true, result });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ ok: false, error: (err && err.message) || String(err) });
+    console.error('[execute] Error:', err);
+    res.status(500).json({ 
+      ok: false, 
+      error: (err && err.message) || String(err),
+      tool: tool,
+      args: finalArgs
+    });
   }
 };
