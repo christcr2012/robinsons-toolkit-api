@@ -177,26 +177,6 @@ async function execute(tool, args) {
     return { success: true, message: `Repository ${owner}/${repo} deleted` };
   }
   
-  if (tool === 'github_get_content') {
-    const { owner, repo, path = '', ref } = args;
-    if (!owner || !repo) throw new Error('owner and repo are required');
-    
-    let url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/contents/${path}`;
-    if (ref) url += `?ref=${ref}`;
-    
-    const response = await fetch(url, { headers });
-    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
-    const data = await response.json();
-    
-    // If it's a file, decode content
-    if (data.type === 'file' && data.content) {
-      data.decoded_content = Buffer.from(data.content, 'base64').toString('utf-8');
-      delete data.content; // Remove base64 to save space
-    }
-    
-    return checkResponseSize(data);
-  }
-  
   // ISSUES (20 tools)
   if (tool === 'github_list_issues') {
     const { owner, repo, state = 'open', labels, sort = 'created', direction = 'desc', since, per_page = 10, page = 1 } = args;
@@ -359,25 +339,6 @@ async function execute(tool, args) {
     });
   }
 
-  if (tool === 'github_create_commit_status') {
-    const { owner, repo, sha, state, target_url, description, context } = args;
-    if (!owner || !repo || !sha || !state) throw new Error('owner, repo, sha, and state are required');
-
-    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/statuses/${sha}`;
-    const body = { state, target_url, description, context };
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body)
-    });
-
-    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
-    const data = await response.json();
-
-    return checkResponseSize(data);
-  }
-  
   // CONTENT & FILES (15 tools)
   if (tool === 'github_get_content') {
     const { owner, repo, path = '', ref } = args;
@@ -3974,6 +3935,175 @@ async function execute(tool, args) {
     if (!name) throw new Error('name is required');
 
     const url = `${GITHUB_API_BASE}/gitignore/templates/${name}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize(data);
+  }
+
+  // ADDITIONAL CRITICAL TOOLS (20 tools)
+  if (tool === 'github_add_labels') {
+    const { owner, repo, issue_number, labels } = args;
+    if (!owner || !repo || !issue_number || !labels) throw new Error('owner, repo, issue_number, and labels are required');
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/issues/${issue_number}/labels`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ labels: Array.isArray(labels) ? labels : [labels] })
+    });
+
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize(data);
+  }
+
+  if (tool === 'github_remove_label') {
+    const { owner, repo, issue_number, name } = args;
+    if (!owner || !repo || !issue_number || !name) throw new Error('owner, repo, issue_number, and name are required');
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/issues/${issue_number}/labels/${name}`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers
+    });
+
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+
+    return { success: true, message: 'Label removed' };
+  }
+
+  if (tool === 'github_replace_labels') {
+    const { owner, repo, issue_number, labels = [] } = args;
+    if (!owner || !repo || !issue_number) throw new Error('owner, repo, and issue_number are required');
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/issues/${issue_number}/labels`;
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ labels })
+    });
+
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize(data);
+  }
+
+  if (tool === 'github_list_issue_comments') {
+    const { owner, repo, issue_number, since, per_page = 10, page = 1 } = args;
+    if (!owner || !repo || !issue_number) throw new Error('owner, repo, and issue_number are required');
+
+    let url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/issues/${issue_number}/comments?per_page=${per_page}&page=${page}`;
+    if (since) url += `&since=${since}`;
+
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize(data.map(c => ({
+      id: c.id,
+      body: c.body,
+      user: c.user ? { login: c.user.login } : null,
+      created_at: c.created_at,
+      updated_at: c.updated_at
+    })));
+  }
+
+  if (tool === 'github_create_issue_comment') {
+    const { owner, repo, issue_number, body } = args;
+    if (!owner || !repo || !issue_number || !body) throw new Error('owner, repo, issue_number, and body are required');
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/issues/${issue_number}/comments`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ body })
+    });
+
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize(data);
+  }
+
+  if (tool === 'github_update_issue_comment') {
+    const { owner, repo, comment_id, body } = args;
+    if (!owner || !repo || !comment_id || !body) throw new Error('owner, repo, comment_id, and body are required');
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/issues/comments/${comment_id}`;
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ body })
+    });
+
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize(data);
+  }
+
+  if (tool === 'github_delete_issue_comment') {
+    const { owner, repo, comment_id } = args;
+    if (!owner || !repo || !comment_id) throw new Error('owner, repo, and comment_id are required');
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/issues/comments/${comment_id}`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers
+    });
+
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+
+    return { success: true, message: 'Comment deleted' };
+  }
+
+  if (tool === 'github_list_repo_topics') {
+    const { owner, repo } = args;
+    if (!owner || !repo) throw new Error('owner and repo are required');
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/topics`;
+    const response = await fetch(url, {
+      headers: {
+        ...headers,
+        'Accept': 'application/vnd.github.mercy-preview+json'
+      }
+    });
+
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize(data);
+  }
+
+  if (tool === 'github_replace_repo_topics') {
+    const { owner, repo, names } = args;
+    if (!owner || !repo || !names) throw new Error('owner, repo, and names are required');
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/topics`;
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        ...headers,
+        'Accept': 'application/vnd.github.mercy-preview+json'
+      },
+      body: JSON.stringify({ names })
+    });
+
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize(data);
+  }
+
+  if (tool === 'github_list_repo_languages') {
+    const { owner, repo } = args;
+    if (!owner || !repo) throw new Error('owner and repo are required');
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/languages`;
     const response = await fetch(url, { headers });
     if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
     const data = await response.json();
