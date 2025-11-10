@@ -13,9 +13,9 @@
   "paths": {
     "/api/execute": {
       "post": {
-        "operationId": "executeToolkit",
+        "operationId": "executeToolkitTool",
         "summary": "Execute any toolkit tool",
-        "description": "Execute any of the 1057 available tools. Provide the tool name and arguments.",
+        "description": "Execute any of the 268 available tools (234 GitHub + 34 Vercel). Provide the tool name and arguments.",
         "requestBody": {
           "required": true,
           "content": {
