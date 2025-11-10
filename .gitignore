@@ -1,8 +1,4 @@
-node_modules/
+node_modules
+.vercel
 .env
 .env.local
-*.log
-.DS_Store
-.vercel
-add-env-vars.ps1
-.env.secrets

@@ -1,44 +1,12 @@
 {
   "name": "robinsons-toolkit-api",
-  "private": true,
-  "version": "0.1.0",
-  "description": "Serverless API wrapper for Custom GPT → Robinson's Toolkit",
-  "license": "UNLICENSED",
-  "main": "dist/index.js",
-  "engines": {
-    "node": ">=18 <=22"
-  },
+  "version": "1.0.0",
+  "description": "Unified REST API for Robinson's 5 MCP Servers",
+  "main": "api/index.js",
   "scripts": {
     "dev": "vercel dev",
     "deploy": "vercel --prod"
   },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.4",
-    "@octokit/rest": "^21.0.2",
-    "@robinson_ai_systems/robinsons-toolkit-mcp": "^1.15.1",
-    "@supabase/supabase-js": "^2.47.10",
-    "axios": "^1.7.9",
-    "cheerio": "^1.0.0",
-    "cloudflare": "^3.5.0",
-    "dotenv": "^16.6.1",
-    "googleapis": "^144.0.0",
-    "openai": "^4.77.3",
-    "p-limit": "^6.1.0",
-    "pg": "^8.13.1",
-    "playwright": "^1.49.1",
-    "redis": "^4.7.1",
-    "resend": "^4.0.1",
-    "stripe": "^17.5.0",
-    "tiktoken": "^1.0.18",
-    "turndown": "^7.2.0",
-    "twilio": "^5.3.5",
-    "zod": "^3.24.1"
-  },
-  "devDependencies": {
-    "@types/node": "^22.10.2",
-    "@types/pg": "^8.11.10",
-    "@types/turndown": "^5.0.5",
-    "typescript": "^5.7.2",
-    "vercel": "^39.2.4"
-  }
+  "dependencies": {},
+  "devDependencies": {}
 }
