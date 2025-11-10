@@ -341,8 +341,212 @@ async function execute(tool, args) {
     return checkResponseSize(minimalCommit(data));
   }
   
-  // Default: tool not implemented
-  throw new Error(`GitHub tool not implemented: ${tool}`);
+  // CONTENT & FILES (15 tools)
+  if (tool === 'github_get_content') {
+    const { owner, repo, path = '', ref } = args;
+    if (!owner || !repo) throw new Error('owner and repo are required');
+
+    let url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/contents/${path}`;
+    if (ref) url += `?ref=${ref}`;
+
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+    const data = await response.json();
+
+    if (data.type === 'file' && data.content) {
+      data.decoded_content = Buffer.from(data.content, 'base64').toString('utf-8');
+      delete data.content;
+    }
+
+    return checkResponseSize(data);
+  }
+
+  if (tool === 'github_create_or_update_file') {
+    const { owner, repo, path, message, content, sha, branch } = args;
+    if (!owner || !repo || !path || !message || !content) {
+      throw new Error('owner, repo, path, message, and content are required');
+    }
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/contents/${path}`;
+    const body = {
+      message,
+      content: Buffer.from(content).toString('base64'),
+      sha,
+      branch
+    };
+
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize(data);
+  }
+
+  if (tool === 'github_delete_file') {
+    const { owner, repo, path, message, sha, branch } = args;
+    if (!owner || !repo || !path || !message || !sha) {
+      throw new Error('owner, repo, path, message, and sha are required');
+    }
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/contents/${path}`;
+    const body = { message, sha, branch };
+
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+
+    return { success: true, message: `File ${path} deleted` };
+  }
+
+  // RELEASES (10 tools)
+  if (tool === 'github_list_releases') {
+    const { owner, repo, per_page = 10, page = 1 } = args;
+    if (!owner || !repo) throw new Error('owner and repo are required');
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/releases?per_page=${per_page}&page=${page}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+    const releases = await response.json();
+
+    return checkResponseSize(releases.map(r => ({
+      id: r.id,
+      tag_name: r.tag_name,
+      name: r.name,
+      draft: r.draft,
+      prerelease: r.prerelease,
+      created_at: r.created_at,
+      published_at: r.published_at,
+      html_url: r.html_url
+    })));
+  }
+
+  if (tool === 'github_get_release') {
+    const { owner, repo, release_id } = args;
+    if (!owner || !repo || !release_id) throw new Error('owner, repo, and release_id are required');
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/releases/${release_id}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize({
+      id: data.id,
+      tag_name: data.tag_name,
+      name: data.name,
+      body: data.body,
+      draft: data.draft,
+      prerelease: data.prerelease,
+      created_at: data.created_at,
+      published_at: data.published_at,
+      html_url: data.html_url
+    });
+  }
+
+  if (tool === 'github_create_release') {
+    const { owner, repo, tag_name, name, body, draft, prerelease, target_commitish } = args;
+    if (!owner || !repo || !tag_name) throw new Error('owner, repo, and tag_name are required');
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/releases`;
+    const requestBody = { tag_name, name, body, draft, prerelease, target_commitish };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize({
+      id: data.id,
+      tag_name: data.tag_name,
+      name: data.name,
+      html_url: data.html_url
+    });
+  }
+
+  // WORKFLOWS (15 tools)
+  if (tool === 'github_list_workflows') {
+    const { owner, repo, per_page = 10, page = 1 } = args;
+    if (!owner || !repo) throw new Error('owner and repo are required');
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/actions/workflows?per_page=${per_page}&page=${page}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize({
+      workflows: data.workflows.map(w => ({
+        id: w.id,
+        name: w.name,
+        path: w.path,
+        state: w.state,
+        created_at: w.created_at,
+        updated_at: w.updated_at
+      }))
+    });
+  }
+
+  if (tool === 'github_list_workflow_runs') {
+    const { owner, repo, workflow_id, status, per_page = 10, page = 1 } = args;
+    if (!owner || !repo) throw new Error('owner and repo are required');
+
+    let url = workflow_id
+      ? `${GITHUB_API_BASE}/repos/${owner}/${repo}/actions/workflows/${workflow_id}/runs`
+      : `${GITHUB_API_BASE}/repos/${owner}/${repo}/actions/runs`;
+
+    url += `?per_page=${per_page}&page=${page}`;
+    if (status) url += `&status=${status}`;
+
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+    const data = await response.json();
+
+    return checkResponseSize({
+      workflow_runs: data.workflow_runs.map(r => ({
+        id: r.id,
+        name: r.name,
+        status: r.status,
+        conclusion: r.conclusion,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+        html_url: r.html_url
+      }))
+    });
+  }
+
+  if (tool === 'github_trigger_workflow') {
+    const { owner, repo, workflow_id, ref, inputs } = args;
+    if (!owner || !repo || !workflow_id || !ref) {
+      throw new Error('owner, repo, workflow_id, and ref are required');
+    }
+
+    const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/actions/workflows/${workflow_id}/dispatches`;
+    const body = { ref, inputs };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+
+    return { success: true, message: 'Workflow triggered' };
+  }
+
+  // Default: tool not implemented yet
+  throw new Error(`GitHub tool not yet fully implemented: ${tool}. This tool exists but needs implementation.`);
 }
 
 module.exports = { execute };
