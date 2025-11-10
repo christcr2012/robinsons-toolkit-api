@@ -641,6 +641,7 @@
         "name": "x-api-key",
         "description": "API key for authentication"
       }
-    }
+    },
+    "schemas": {}
   }
 }
