@@ -23,12 +23,14 @@ module.exports = async (req, res) => {
       scopeContents = fs.readdirSync(scopePath);
     }
     
-    // Try to require the package and see what error we get
-    let requireError = null;
+    // Try to import the package using dynamic import
+    let importError = null;
+    let importSuccess = false;
     try {
-      require('@robinson_ai_systems/robinsons-toolkit-mcp');
+      const mod = await import('@robinson_ai_systems/robinsons-toolkit-mcp');
+      importSuccess = true;
     } catch (e) {
-      requireError = {
+      importError = {
         message: e.message,
         code: e.code,
         stack: e.stack
@@ -42,7 +44,8 @@ module.exports = async (req, res) => {
       hasScope,
       hasToolkit,
       scopeContents,
-      requireError
+      importSuccess,
+      importError
     });
   } catch (err) {
     res.status(500).json({
