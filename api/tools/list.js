@@ -1,4 +1,5 @@
 const { getToolkitInstance } = require('../_toolkit');
+const { getAllAliases } = require('../_tool_aliases');
 
 module.exports = async (req, res) => {
   try {
@@ -18,11 +19,11 @@ module.exports = async (req, res) => {
     if (tk.registry && tk.registry.toolsByCategory) {
       const toolsByCategory = tk.registry.toolsByCategory;
       const categories = Array.from(toolsByCategory.keys());
-      
+
       for (const cat of categories) {
         // Filter by category if specified
         if (category && cat !== category) continue;
-        
+
         const toolsMap = toolsByCategory.get(cat);
         if (toolsMap && toolsMap instanceof Map) {
           const toolNames = Array.from(toolsMap.keys());
@@ -30,11 +31,26 @@ module.exports = async (req, res) => {
         }
       }
     }
+    
+    // Add aliases as searchable tools
+    const aliases = getAllAliases();
+    for (const [alias, actualTool] of Object.entries(aliases)) {
+      // Find the category of the actual tool
+      const actualToolEntry = allTools.find(t => t.name === actualTool);
+      if (actualToolEntry) {
+        allTools.push({
+          name: alias,
+          category: actualToolEntry.category,
+          isAlias: true,
+          actualTool: actualTool
+        });
+      }
+    }
 
     // Filter by search query
     const needle = String(q).toLowerCase();
-    let filtered = allTools.filter((t) => 
-      t.name.toLowerCase().includes(needle) || 
+    let filtered = allTools.filter((t) =>
+      t.name.toLowerCase().includes(needle) ||
       t.category.toLowerCase().includes(needle)
     );
 
@@ -43,12 +59,12 @@ module.exports = async (req, res) => {
     const end = start + Math.max(1, Math.min(500, parseInt(limit, 10) || 100));
     const slice = filtered.slice(start, end);
 
-    res.status(200).json({ 
-      ok: true, 
-      total: filtered.length, 
-      offset: start, 
-      limit: end - start, 
-      tools: slice 
+    res.status(200).json({
+      ok: true,
+      total: filtered.length,
+      offset: start,
+      limit: end - start,
+      tools: slice
     });
   } catch (err) {
     console.error(err);

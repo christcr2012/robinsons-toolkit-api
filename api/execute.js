@@ -1,4 +1,5 @@
 const { getToolkitInstance } = require('./_toolkit');
+const { resolveToolName, mapParameters } = require('./_tool_aliases');
 
 module.exports = async (req, res) => {
   try {
@@ -20,9 +21,15 @@ module.exports = async (req, res) => {
     if (!exec) return res.status(500).json({ error: 'Toolkit has no execute method' });
 
     // Support both formats: { tool, args: {...} } and { tool, param1, param2, ... }
-    const toolArgs = (args && typeof args === 'object' && Object.keys(rest).length === 0) ? args : rest;
+    let toolArgs = (args && typeof args === 'object' && Object.keys(rest).length === 0) ? args : rest;
+    
+    // Resolve alias and map parameters
+    const resolvedTool = resolveToolName(tool);
+    toolArgs = mapParameters(tool, toolArgs);
+    
+    console.log(`[execute] Original tool: ${tool}, Resolved: ${resolvedTool}`);
 
-    const result = await exec.call(tk, tool, toolArgs);
+    const result = await exec.call(tk, resolvedTool, toolArgs);
     res.status(200).json({ ok: true, result });
   } catch (err) {
     console.error(err);
