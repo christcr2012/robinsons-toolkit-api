@@ -21,7 +21,8 @@ const schema = {
         "in": "header",
         "name": "X-API-Key"
       }
-    }
+    },
+    "schemas": {}
   },
   "security": [{"ApiKeyAuth": []}],
   "paths": {
@@ -140,7 +141,7 @@ const schema = {
                   "complexity": {"type": "string", "enum": ["simple", "medium", "complex"]},
                   "linesOfCode": {"type": "number"},
                   "workflowName": {"type": "string"},
-                  "steps": {"type": "array"},
+                  "steps": {"type": "array", "items": {"type": "object"}},
                   "templateName": {"type": "string"},
                   "workflow": {"type": "object"}
                 }
