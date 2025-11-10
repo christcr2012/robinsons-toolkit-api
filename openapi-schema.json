@@ -1,0 +1,136 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Robinson's Toolkit API",
+    "description": "Unified REST API for Robinson's 5 MCP Servers: Toolkit (909 methods), Thinking Tools (64 tools), FREE Agent, PAID Agent, Credit Optimizer",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://robinsons-toolkit-42jj6a6yq-chris-projects-de6cd1bf.vercel.app"
+    }
+  ],
+  "paths": {
+    "/api/execute": {
+      "post": {
+        "operationId": "executeToolkitTool",
+        "summary": "Execute Robinson's Toolkit tool",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["tool", "credentials", "args"],
+                "properties": {
+                  "tool": {"type": "string"},
+                  "credentials": {"type": "object"},
+                  "args": {"type": "object"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"200": {"description": "Success"}}
+      }
+    },
+    "/api/thinking/execute": {
+      "post": {
+        "operationId": "executeThinkingTool",
+        "summary": "Execute Thinking Tool",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["tool", "args"],
+                "properties": {
+                  "tool": {"type": "string"},
+                  "args": {"type": "object"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"200": {"description": "Success"}}
+      }
+    },
+    "/api/agent/free/execute": {
+      "post": {
+        "operationId": "executeFreeAgent",
+        "summary": "Execute FREE Agent (Ollama, 0 credits)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["task", "context"],
+                "properties": {
+                  "task": {"type": "string"},
+                  "context": {"type": "string"},
+                  "quality": {"type": "string", "enum": ["fast", "balanced", "best"]},
+                  "complexity": {"type": "string", "enum": ["simple", "medium", "complex"]}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"200": {"description": "Success"}}
+      }
+    },
+    "/api/agent/paid/execute": {
+      "post": {
+        "operationId": "executePaidAgent",
+        "summary": "Execute PAID Agent (OpenAI/Claude)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["task", "context"],
+                "properties": {
+                  "task": {"type": "string"},
+                  "context": {"type": "string"},
+                  "provider": {"type": "string", "enum": ["openai", "claude"]},
+                  "maxCost": {"type": "number"},
+                  "minQuality": {"type": "string", "enum": ["basic", "standard", "premium"]}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"200": {"description": "Success"}}
+      }
+    },
+    "/api/optimizer/workflow": {
+      "post": {
+        "operationId": "executeOptimizerAction",
+        "summary": "Execute Credit Optimizer action",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["action"],
+                "properties": {
+                  "action": {"type": "string", "enum": ["plan_workflow", "scaffold_template", "estimate_cost", "optimize_workflow"]},
+                  "workflowName": {"type": "string"},
+                  "steps": {"type": "array"},
+                  "templateName": {"type": "string"},
+                  "taskType": {"type": "string"},
+                  "complexity": {"type": "string"},
+                  "workflow": {"type": "object"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {"200": {"description": "Success"}}
+      }
+    }
+  }
+}
