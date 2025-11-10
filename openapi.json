@@ -320,9 +320,6 @@
             "api_key": []
           }
         ],
-        "requestBody": {
-          "required": false
-        },
         "responses": {
           "200": {
             "description": "List of OpenAI models"
