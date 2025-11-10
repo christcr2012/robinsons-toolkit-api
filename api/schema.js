@@ -11,7 +11,7 @@ const schema = {
   },
   "servers": [
     {
-      "url": "https://robinsons-toolkit-42jj6a6yq-chris-projects-de6cd1bf.vercel.app"
+      "url": "https://robinsons-toolkit-api.vercel.app"
     }
   ],
   "components": {
