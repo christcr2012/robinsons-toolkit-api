@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Robinson's Toolkit API",
-    "description": "Unified REST API for Robinson's 5 MCP Servers. IMPORTANT: All list endpoints support pagination. Use limit parameter (default: 10, max: 100) to control response size and prevent errors.",
-    "version": "1.0.1"
+    "description": "Unified REST API for Robinson's 5 MCP Servers. IMPORTANT: All list endpoints support pagination. Use limit parameter (default: 10, max: 100) to control response size and prevent errors. AUTHENTICATION: Requires API Key in X-API-Key header.",
+    "version": "1.0.2"
   },
   "servers": [
     {
@@ -72,7 +72,7 @@
               "schema": {
                 "type": "object",
                 "required": ["tool"],
-                "properties": {
+                 "properties": {
                   "tool": {
                     "type": "string",
                     "description": "Thinking tool name",
