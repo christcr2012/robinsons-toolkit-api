@@ -3,7 +3,8 @@
  * Standalone REST API with ALL 1,332 tools implemented
  */
 
-const MAX_RESPONSE_SIZE = 100 * 1024; // 100KB limit for Custom GPT
+const MAX_RESPONSE_SIZE = 100 * 1024; // 100KB limit
+// Force redeploy - 268 tools implemented for Custom GPT
 
 // Response size checker
 function checkResponseSize(data, maxSize = MAX_RESPONSE_SIZE) {
