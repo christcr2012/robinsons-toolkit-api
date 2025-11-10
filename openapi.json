@@ -59,21 +59,23 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
                 "properties": {
                   "tool": {
-                    "type": "string",
-                    "description": "Tool name to execute"
+                    "description": "Tool name to execute",
+                    "type": "string"
                   },
                   "args": {
-                    "type": "object",
                     "additionalProperties": true,
-                    "description": "Tool arguments"
+                    "description": "Tool arguments (optional - can also pass parameters at top level)",
+                    "type": "object"
                   }
                 },
+                "description": "Accepts both formats: {tool, args: {...}} OR {tool, param1, param2, ...}",
+                "additionalProperties": true,
                 "required": [
                   "tool"
-                ]
+                ],
+                "type": "object"
               }
             }
           }
