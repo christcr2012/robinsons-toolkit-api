@@ -3,28 +3,25 @@
 
 const path = require('path');
 let cached;
-let loadError = null;
-
-function tryRequire(id) {
-  try { 
-    const mod = require(id);
-    console.log(`[_toolkit] ✓ Successfully required: ${id}`);
-    return { mod, type: 'cjs' }; 
-  } catch (e) { 
-    console.log(`[_toolkit] ✗ Failed to require ${id}:`, e.message);
-    loadError = e;
-    return null; 
-  }
-}
 
 async function tryImport(id) {
   try { 
     const mod = await import(id);
-    console.log(`[_toolkit] ✓ Successfully imported: ${id}`);
     return { mod, type: 'esm' }; 
   } catch (e) { 
-    console.log(`[_toolkit] ✗ Failed to import ${id}:`, e.message);
-    loadError = e;
+    return null; 
+  }
+}
+
+function tryRequire(id) {
+  try { 
+    const mod = require(id);
+    return { mod, type: 'cjs' }; 
+  } catch (e) { 
+    // If it's an ERR_REQUIRE_ESM error, we need to use import() instead
+    if (e.code === 'ERR_REQUIRE_ESM') {
+      return { needsImport: true };
+    }
     return null; 
   }
 }
@@ -34,22 +31,28 @@ function unwrap(m) {
 }
 
 async function getToolkitCtor() {
-  console.log('[_toolkit] Attempting to load toolkit...');
+  // 1) Try to require the npm package (CJS)
+  const cjsAttempt = tryRequire('@robinson_ai_systems/robinsons-toolkit-mcp');
   
-  // 1) Prefer installed package
-  const cjs = tryRequire('@robinson_ai_systems/robinsons-toolkit-mcp');
-  if (cjs) return unwrap(cjs.mod);
-
-  const esm = await tryImport('@robinson_ai_systems/robinsons-toolkit-mcp').catch(() => null);
+  // If it needs import (ES module), use dynamic import
+  if (cjsAttempt && cjsAttempt.needsImport) {
+    const esm = await tryImport('@robinson_ai_systems/robinsons-toolkit-mcp');
+    if (esm) return unwrap(esm.mod);
+  }
+  
+  // If CJS worked, use it
+  if (cjsAttempt && cjsAttempt.mod) {
+    return unwrap(cjsAttempt.mod);
+  }
+  
+  // 2) Try direct import (for ES modules)
+  const esm = await tryImport('@robinson_ai_systems/robinsons-toolkit-mcp');
   if (esm) return unwrap(esm.mod);
 
-  // 2) Fallback to vendored runtime (absolute path from project root)
-  console.log('[_toolkit] Trying vendored runtime fallback...');
+  // 3) Fallback to vendored runtime (absolute path from project root)
   const vendoredPath = path.join(__dirname, '..', 'vendor', 'robinsons-toolkit-mcp');
   const vendored = tryRequire(vendoredPath);
-  if (vendored) {
-    console.log('[_toolkit] ⚠ Using vendored runtime (6 tools only)');
-    console.log('[_toolkit] Last npm package error:', loadError ? loadError.message : 'none');
+  if (vendored && vendored.mod) {
     return unwrap(vendored.mod);
   }
 
@@ -57,12 +60,8 @@ async function getToolkitCtor() {
 }
 
 module.exports.getToolkitInstance = async function getToolkitInstance() {
-  if (cached) {
-    console.log('[_toolkit] Returning cached instance');
-    return cached;
-  }
+  if (cached) return cached;
   const CtorOrObj = await getToolkitCtor();
   cached = (typeof CtorOrObj === 'function') ? new CtorOrObj() : CtorOrObj;
-  console.log('[_toolkit] Toolkit loaded successfully');
   return cached;
 };
