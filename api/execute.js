@@ -1,6 +1,6 @@
 /**
- * Robinson's Toolkit API - Universal Tool Executor
- * Standalone REST API with ALL 1,332 tools implemented
+ * Robinson's Toolkit REST API - Universal Tool Executor
+ * Standalone REST API with 1,655 tools across 17 integrations
  */
 
 const MAX_RESPONSE_SIZE = 100 * 1024; // 100KB limit

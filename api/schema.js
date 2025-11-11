@@ -5,8 +5,8 @@
 const schema = {
   "openapi": "3.1.0",
   "info": {
-    "title": "Robinson's Toolkit API",
-    "description": "Unified REST API for Robinson's 5 MCP Servers. All credentials stored server-side for security.",
+    "title": "Robinson's Toolkit REST API",
+    "description": "Standalone REST API with 1,655 tools across 17 integrations (GitHub, Vercel, Neon, Upstash, Google Workspace, OpenAI, Stripe, Supabase, Playwright, Twilio, Resend, Cloudflare, Postgres, Neo4j, Qdrant, Context7, N8N). All credentials stored server-side for security.",
     "version": "1.0.0"
   },
   "servers": [

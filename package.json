@@ -1,7 +1,7 @@
 {
   "name": "robinsons-toolkit-api",
   "version": "1.0.0",
-  "description": "Unified REST API for Robinson's 5 MCP Servers",
+  "description": "Standalone REST API with 1,655 tools across 17 integrations",
   "main": "api/index.js",
   "scripts": {
     "dev": "vercel dev",
