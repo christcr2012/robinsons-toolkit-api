@@ -98,16 +98,14 @@ module.exports = async (req, res) => {
   }
   
   try {
-    const { tool, args, ...otherParams } = req.body;
+    const { tool, ...params } = req.body;
 
     if (!tool) {
       return res.status(400).json({ error: 'Missing required field: tool' });
     }
 
-    // Support both formats:
-    // 1. { tool, args: {...} } - Wrapped parameters
-    // 2. { tool, param1, param2, ... } - Flat parameters (Custom GPT format)
-    const toolArgs = args || otherParams;
+    // Extract tool parameters (everything except 'tool' field)
+    const toolArgs = params;
 
     // Extract integration from tool name (e.g., "github_list_repos" -> "github")
     const integration = tool.split('_')[0];

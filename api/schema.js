@@ -37,11 +37,11 @@ const schema = {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["tool", "args"],
+                "required": ["tool"],
                 "properties": {
-                  "tool": {"type": "string", "description": "Tool name (e.g., github_list_repos)", "example": "github_list_repos"},
-                  "args": {"type": "object", "description": "Tool arguments", "example": {"type": "owner"}, "additionalProperties": true}
-                }
+                  "tool": {"type": "string", "description": "Tool name (e.g., github_list_repos)", "example": "github_list_repos"}
+                },
+                "additionalProperties": true
               }
             }
           }
