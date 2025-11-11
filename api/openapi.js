@@ -6,28 +6,37 @@
 const fs = require('fs');
 const path = require('path');
 
-function scanDirectory(dir, prefix = '', basePath = '') {
+function scanDirectory(dir, prefix = '') {
   const paths = {};
 
   try {
     const files = fs.readdirSync(dir, { withFileTypes: true });
 
     for (const file of files) {
-      if (file.name.startsWith('.') || file.name === 'openapi.js' || file.name === '_shared') continue;
+      // Skip hidden files, this file, and shared utilities
+      if (file.name.startsWith('.') || file.name === 'openapi.js' || file.name === '_shared' || file.name === 'handlers') {
+        continue;
+      }
 
       const fullPath = path.join(dir, file.name);
-      const routePath = prefix + '/' + file.name.replace(/\.js$/, '').replace(/\[/g, '{').replace(/\]/g, '}');
-
+      
       if (file.isDirectory()) {
-        Object.assign(paths, scanDirectory(fullPath, routePath, basePath));
+        // Recursively scan subdirectories
+        const subPaths = scanDirectory(fullPath, prefix + '/' + file.name);
+        Object.assign(paths, subPaths);
       } else if (file.name.endsWith('.js')) {
+        // Convert file path to OpenAPI path
+        // api/github/repos.js -> /github/repos
+        // api/github/repos/[owner]/[repo].js -> /github/repos/{owner}/{repo}
+        const routePath = prefix + '/' + file.name.replace(/\.js$/, '').replace(/\[/g, '{').replace(/\]/g, '}');
+        
         const operationId = routePath.replace(/[{}\/\-]/g, '_').substring(1);
 
         paths[routePath] = {
           get: {
             summary: GET $routePath,
             operationId: get_$operationId,
-            tags: [routePath.split('/')[2] || 'api'],
+            tags: [routePath.split('/')[1] || 'api'],
             responses: {
               '200': { description: 'Success' },
               '400': { description: 'Bad Request' },
@@ -38,7 +47,7 @@ function scanDirectory(dir, prefix = '', basePath = '') {
           post: {
             summary: POST $routePath,
             operationId: post_$operationId,
-            tags: [routePath.split('/')[2] || 'api'],
+            tags: [routePath.split('/')[1] || 'api'],
             requestBody: {
               content: { 'application/json': { schema: { type: 'object' } } }
             },
@@ -52,7 +61,7 @@ function scanDirectory(dir, prefix = '', basePath = '') {
           put: {
             summary: PUT $routePath,
             operationId: put_$operationId,
-            tags: [routePath.split('/')[2] || 'api'],
+            tags: [routePath.split('/')[1] || 'api'],
             requestBody: {
               content: { 'application/json': { schema: { type: 'object' } } }
             },
@@ -66,7 +75,7 @@ function scanDirectory(dir, prefix = '', basePath = '') {
           patch: {
             summary: PATCH $routePath,
             operationId: patch_$operationId,
-            tags: [routePath.split('/')[2] || 'api'],
+            tags: [routePath.split('/')[1] || 'api'],
             requestBody: {
               content: { 'application/json': { schema: { type: 'object' } } }
             },
@@ -80,7 +89,7 @@ function scanDirectory(dir, prefix = '', basePath = '') {
           delete: {
             summary: DELETE $routePath,
             operationId: delete_$operationId,
-            tags: [routePath.split('/')[2] || 'api'],
+            tags: [routePath.split('/')[1] || 'api'],
             responses: {
               '204': { description: 'Deleted' },
               '400': { description: 'Bad Request' },
