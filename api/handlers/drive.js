@@ -1,6 +1,6 @@
 /**
  * DRIVE API Handlers
- * Auto-generated from Robinson's Toolkit MCP
+ * Standalone REST API implementation
  * 3 tools
  */
 

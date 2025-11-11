@@ -1,6 +1,6 @@
 /**
  * CALENDAR API Handlers
- * Auto-generated from Robinson's Toolkit MCP
+ * Standalone REST API implementation
  * 2 tools
  */
 

@@ -1,5 +1,5 @@
 // Auto-generated tools registry
-// Generated from Robinson's Toolkit MCP server
+// Standalone REST API - 1,655 tools across 17 integrations
 
 
 const toolsRegistry = {
