@@ -103,7 +103,8 @@ function scanDirectory(dir, prefix = "") {
 
 module.exports = async (req, res) => {
   try {
-    const apiDir = path.join(__dirname);
+    // Scan the api directory - use __dirname which is the api/ folder
+    const apiDir = __dirname;
     const paths = scanDirectory(apiDir);
 
     const schema = {
