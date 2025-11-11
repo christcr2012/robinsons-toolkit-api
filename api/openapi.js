@@ -1,6 +1,6 @@
 /**
  * Dynamic OpenAPI Schema Generator
- * GET /api/openapi.json - Returns auto-discovered OpenAPI schema for Custom GPT
+ * GET /api/openapi - Returns auto-discovered OpenAPI schema for Custom GPT
  */
 
 const fs = require('fs');
@@ -25,8 +25,8 @@ function scanDirectory(dir, prefix = '', basePath = '') {
 
         paths[routePath] = {
           get: {
-            summary: `GET ${routePath}`,
-            operationId: `get_${operationId}`,
+            summary: GET $routePath,
+            operationId: get_$operationId,
             tags: [routePath.split('/')[2] || 'api'],
             responses: {
               '200': { description: 'Success' },
@@ -36,8 +36,8 @@ function scanDirectory(dir, prefix = '', basePath = '') {
             }
           },
           post: {
-            summary: `POST ${routePath}`,
-            operationId: `post_${operationId}`,
+            summary: POST $routePath,
+            operationId: post_$operationId,
             tags: [routePath.split('/')[2] || 'api'],
             requestBody: {
               content: { 'application/json': { schema: { type: 'object' } } }
@@ -50,8 +50,8 @@ function scanDirectory(dir, prefix = '', basePath = '') {
             }
           },
           put: {
-            summary: `PUT ${routePath}`,
-            operationId: `put_${operationId}`,
+            summary: PUT $routePath,
+            operationId: put_$operationId,
             tags: [routePath.split('/')[2] || 'api'],
             requestBody: {
               content: { 'application/json': { schema: { type: 'object' } } }
@@ -64,8 +64,8 @@ function scanDirectory(dir, prefix = '', basePath = '') {
             }
           },
           patch: {
-            summary: `PATCH ${routePath}`,
-            operationId: `patch_${operationId}`,
+            summary: PATCH $routePath,
+            operationId: patch_$operationId,
             tags: [routePath.split('/')[2] || 'api'],
             requestBody: {
               content: { 'application/json': { schema: { type: 'object' } } }
@@ -78,8 +78,8 @@ function scanDirectory(dir, prefix = '', basePath = '') {
             }
           },
           delete: {
-            summary: `DELETE ${routePath}`,
-            operationId: `delete_${operationId}`,
+            summary: DELETE $routePath,
+            operationId: delete_$operationId,
             tags: [routePath.split('/')[2] || 'api'],
             responses: {
               '204': { description: 'Deleted' },
@@ -92,7 +92,7 @@ function scanDirectory(dir, prefix = '', basePath = '') {
       }
     }
   } catch (e) {
-    console.error(`Error scanning ${dir}:`, e.message);
+    console.error(Error scanning $dir:, e.message);
   }
 
   return paths;
@@ -104,7 +104,7 @@ module.exports = async (req, res) => {
     const paths = scanDirectory(apiDir);
 
     const schema = {
-      openapi: '3.0.0',
+      openapi: '3.1.0',
       info: {
         title: "Robinson's Toolkit REST API",
         description: 'Unified REST API for 1,655+ tools across GitHub, Vercel, Neon, Upstash, Google Workspace, OpenAI, Stripe, and more. All authentication is handled server-side.',
@@ -120,8 +120,9 @@ module.exports = async (req, res) => {
           description: 'Production API'
         }
       ],
-      paths: paths,
+      paths: paths || {},
       components: {
+        schemas: {},
         securitySchemes: {
           apiKey: {
             type: 'apiKey',
@@ -142,4 +143,3 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
-
