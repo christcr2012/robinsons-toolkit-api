@@ -105,8 +105,8 @@ module.exports = async (req, res) => {
     }
 
     // Support both formats:
-    // 1. { tool, args: {...} } - MCP/direct API format
-    // 2. { tool, param1, param2, ... } - Custom GPT format
+    // 1. { tool, args: {...} } - Wrapped parameters
+    // 2. { tool, param1, param2, ... } - Flat parameters (Custom GPT format)
     const toolArgs = args || otherParams;
 
     // Extract integration from tool name (e.g., "github_list_repos" -> "github")
