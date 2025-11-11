@@ -6,7 +6,7 @@
 const { getAuthHeaders, checkResponseSize } = require('../_shared/github-utils');
 
 module.exports = async (req, res) => {
-  const headers = getAuthHeaders(req);
+  const headers = getAuthHeaders();
   const { method, query } = req;
   
   try {
@@ -35,5 +35,6 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
 
 
