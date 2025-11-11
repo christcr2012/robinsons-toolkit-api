@@ -1,6 +1,6 @@
 /**
- * GitHub Vulnerability Alerts REST API
- * GET /api/github/repos/[owner]/[repo]/vulnerability-alerts - Get status
+ * GitHub SBOM REST API
+ * GET /api/github/repos/[owner]/[repo]/sbom - Get SBOM
  */
 
 const { getAuthHeaders, checkResponseSize } = require('../../../../_shared/github-utils');
@@ -16,16 +16,16 @@ module.exports = async (req, res) => {
   
   try {
     if (method === 'GET') {
-      const url = `https://api.github.com/repos/${owner}/${repo}/vulnerability-alerts`;
+      const url = `https://api.github.com/repos/${owner}/${repo}/sbom`;
       const response = await fetch(url, { headers });
       if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
       const data = await response.json();
-      return res.status(200).json(checkResponseSize({ enabled: data }));
+      return res.status(200).json(checkResponseSize(data));
     }
     
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
-    console.error('GitHub vulnerability alerts API error:', error);
+    console.error('GitHub SBOM API error:', error);
     return res.status(500).json({ error: error.message });
   }
 };
