@@ -98,12 +98,17 @@ module.exports = async (req, res) => {
   }
   
   try {
-    const { tool, args = {} } = req.body;
-    
+    const { tool, args, ...otherParams } = req.body;
+
     if (!tool) {
       return res.status(400).json({ error: 'Missing required field: tool' });
     }
-    
+
+    // Support both formats:
+    // 1. { tool, args: {...} } - MCP/direct API format
+    // 2. { tool, param1, param2, ... } - Custom GPT format
+    const toolArgs = args || otherParams;
+
     // Extract integration from tool name (e.g., "github_list_repos" -> "github")
     const integration = tool.split('_')[0];
     
@@ -112,16 +117,16 @@ module.exports = async (req, res) => {
     
     switch (integration) {
       case 'github':
-        result = await githubHandler.execute(tool, args);
+        result = await githubHandler.execute(tool, toolArgs);
         break;
       case 'vercel':
-        result = await vercelHandler.execute(tool, args);
+        result = await vercelHandler.execute(tool, toolArgs);
         break;
       case 'neon':
-        result = await neonHandler.execute(tool, args);
+        result = await neonHandler.execute(tool, toolArgs);
         break;
       case 'upstash':
-        result = await upstashHandler.execute(tool, args);
+        result = await upstashHandler.execute(tool, toolArgs);
         break;
       case 'gmail':
       case 'drive':
@@ -135,43 +140,43 @@ module.exports = async (req, res) => {
       case 'forms':
       case 'classroom':
       case 'chat':
-        result = await googleHandler.execute(tool, args);
+        result = await googleHandler.execute(tool, toolArgs);
         break;
       case 'openai':
-        result = await openaiHandler.execute(tool, args);
+        result = await openaiHandler.execute(tool, toolArgs);
         break;
       case 'stripe':
-        result = await stripeHandler.execute(tool, args);
+        result = await stripeHandler.execute(tool, toolArgs);
         break;
       case 'supabase':
-        result = await supabaseHandler.execute(tool, args);
+        result = await supabaseHandler.execute(tool, toolArgs);
         break;
       case 'playwright':
-        result = await playwrightHandler.execute(tool, args);
+        result = await playwrightHandler.execute(tool, toolArgs);
         break;
       case 'twilio':
-        result = await twilioHandler.execute(tool, args);
+        result = await twilioHandler.execute(tool, toolArgs);
         break;
       case 'resend':
-        result = await resendHandler.execute(tool, args);
+        result = await resendHandler.execute(tool, toolArgs);
         break;
       case 'cloudflare':
-        result = await cloudflareHandler.execute(tool, args);
+        result = await cloudflareHandler.execute(tool, toolArgs);
         break;
       case 'postgres':
-        result = await postgresHandler.execute(tool, args);
+        result = await postgresHandler.execute(tool, toolArgs);
         break;
       case 'neo4j':
-        result = await neo4jHandler.execute(tool, args);
+        result = await neo4jHandler.execute(tool, toolArgs);
         break;
       case 'qdrant':
-        result = await qdrantHandler.execute(tool, args);
+        result = await qdrantHandler.execute(tool, toolArgs);
         break;
       case 'n8n':
-        result = await n8nHandler.execute(tool, args);
+        result = await n8nHandler.execute(tool, toolArgs);
         break;
       case 'context7':
-        result = await context7Handler.execute(tool, args);
+        result = await context7Handler.execute(tool, toolArgs);
         break;
       default:
         return res.status(400).json({ error: `Unknown integration: ${integration}` });
