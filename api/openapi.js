@@ -10,9 +10,12 @@ function scanDirectory(dir, prefix = "") {
   const paths = {};
 
   try {
+    console.log(`Scanning directory: ${dir}`);
     const files = fs.readdirSync(dir, { withFileTypes: true });
+    console.log(`Found ${files.length} items`);
 
     for (const file of files) {
+      console.log(`Processing: ${file.name}`);
       if (file.name.startsWith(".") || file.name === "openapi.js" || file.name === "_shared" || file.name === "handlers") {
         continue;
       }
@@ -37,59 +40,6 @@ function scanDirectory(dir, prefix = "") {
               "401": { description: "Unauthorized" },
               "500": { description: "Server Error" }
             }
-          },
-          post: {
-            summary: `POST ${routePath}`,
-            operationId: `post_${operationId}`,
-            tags: [routePath.split("/")[1] || "api"],
-            requestBody: {
-              content: { "application/json": { schema: { type: "object" } } }
-            },
-            responses: {
-              "201": { description: "Created" },
-              "400": { description: "Bad Request" },
-              "401": { description: "Unauthorized" },
-              "500": { description: "Server Error" }
-            }
-          },
-          put: {
-            summary: `PUT ${routePath}`,
-            operationId: `put_${operationId}`,
-            tags: [routePath.split("/")[1] || "api"],
-            requestBody: {
-              content: { "application/json": { schema: { type: "object" } } }
-            },
-            responses: {
-              "200": { description: "Success" },
-              "400": { description: "Bad Request" },
-              "401": { description: "Unauthorized" },
-              "500": { description: "Server Error" }
-            }
-          },
-          patch: {
-            summary: `PATCH ${routePath}`,
-            operationId: `patch_${operationId}`,
-            tags: [routePath.split("/")[1] || "api"],
-            requestBody: {
-              content: { "application/json": { schema: { type: "object" } } }
-            },
-            responses: {
-              "200": { description: "Success" },
-              "400": { description: "Bad Request" },
-              "401": { description: "Unauthorized" },
-              "500": { description: "Server Error" }
-            }
-          },
-          delete: {
-            summary: `DELETE ${routePath}`,
-            operationId: `delete_${operationId}`,
-            tags: [routePath.split("/")[1] || "api"],
-            responses: {
-              "204": { description: "Deleted" },
-              "400": { description: "Bad Request" },
-              "401": { description: "Unauthorized" },
-              "500": { description: "Server Error" }
-            }
           }
         };
       }
@@ -103,9 +53,10 @@ function scanDirectory(dir, prefix = "") {
 
 module.exports = async (req, res) => {
   try {
-    // Scan the api directory - use __dirname which is the api/ folder
     const apiDir = __dirname;
+    console.log(`API Dir: ${apiDir}`);
     const paths = scanDirectory(apiDir);
+    console.log(`Found ${Object.keys(paths).length} paths`);
 
     const schema = {
       openapi: "3.1.0",
@@ -144,6 +95,6 @@ module.exports = async (req, res) => {
     return res.status(200).json(schema);
   } catch (error) {
     console.error("OpenAPI schema generation error:", error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message, debug: error.stack });
   }
 };
