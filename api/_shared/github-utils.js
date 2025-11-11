@@ -2,6 +2,8 @@
  * Shared GitHub API utilities
  */
 
+const { getGitHubHeaders } = require('./auth-middleware');
+
 const GITHUB_API_BASE = 'https://api.github.com';
 const MAX_RESPONSE_SIZE = 100 * 1024;
 
@@ -13,16 +15,8 @@ function checkResponseSize(data) {
   return data;
 }
 
-function getAuthHeaders() {
-  const token = process.env.GITHUB_TOKEN;
-  if (!token) throw new Error('GITHUB_TOKEN not configured');
-  
-  return {
-    'Authorization': `Bearer ${token}`,
-    'Accept': 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28',
-    'Content-Type': 'application/json'
-  };
+function getAuthHeaders(req) {
+  return getGitHubHeaders(req);
 }
 
 // Minimal field extractors to reduce response size
